@@ -31,15 +31,16 @@ Voice Style: Confident, friendly, modern tech startup tone
 
 ---
 
-SCENE BREAKDOWN (35 seconds @ 30fps = 1050 frames):
+SCENE BREAKDOWN (39 seconds @ 30fps = 1170 frames):
 - Intro: 0-120 (4s)
-- Problem: 120-240 (4s)
-- Solution: 240-360 (4s)
-- Examples: 360-540 (6s)
-- Features: 540-690 (5s)
-- How It Works: 690-810 (4s)
-- Platforms: 810-900 (3s)
-- CTA: 900-1050 (5s)
+- Mac Mini Visual: 120-240 (4s) - Shows hardware pain point
+- Problem: 240-360 (4s)
+- Solution: 360-480 (4s)
+- Examples: 480-660 (6s)
+- Features: 660-810 (5s)
+- How It Works: 810-930 (4s)
+- Platforms: 930-1020 (3s)
+- CTA: 1020-1170 (5s)
 
 ---
 

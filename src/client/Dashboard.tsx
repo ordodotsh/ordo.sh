@@ -197,11 +197,15 @@ export function Dashboard() {
                     <span style={styles.statusLabel}>Region</span>
                     <span style={styles.statusValue}>{dashboard.vm.region}</span>
                   </div>
-                  {dashboard.vm.ip && (
-                    <div style={styles.statusRow}>
-                      <span style={styles.statusLabel}>IP</span>
-                      <span style={styles.statusValue}>{dashboard.vm.ip}</span>
-                    </div>
+                  {dashboard.vm.status === 'running' && dashboard.vm.ip && (
+                    <a
+                      href={dashboard.vm.ip}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.terminalBtn}
+                    >
+                      Open Terminal
+                    </a>
                   )}
                   {dashboard.vm.status === 'failed' && dashboard.vm.error && (
                     <div style={styles.errorBox}>
@@ -526,5 +530,19 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
     width: '100%',
+  },
+  terminalBtn: {
+    display: 'block',
+    marginTop: 16,
+    padding: '12px 16px',
+    background: colors.text,
+    color: '#fff',
+    border: 'none',
+    borderRadius: 8,
+    fontSize: 14,
+    fontWeight: 600,
+    textAlign: 'center',
+    textDecoration: 'none',
+    cursor: 'pointer',
   },
 }

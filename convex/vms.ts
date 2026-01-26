@@ -127,9 +127,25 @@ export const provision = action({
               },
               env: {
                 USER_WALLET: wallet,
-                // Users configure their own ANTHROPIC_API_KEY via clawdbot config
               },
+              services: [
+                {
+                  ports: [
+                    {
+                      port: 443,
+                      handlers: ["tls", "http"],
+                    },
+                    {
+                      port: 80,
+                      handlers: ["http"],
+                    },
+                  ],
+                  protocol: "tcp",
+                  internal_port: 7681,
+                },
+              ],
             },
+            region,
           }),
         }
       );
@@ -140,13 +156,14 @@ export const provision = action({
       }
 
       const machine = await machineRes.json();
+      const terminalUrl = `https://${appName}.fly.dev`;
 
       // 3. Update VM record with machine info
       await ctx.runMutation(internal.vms.updateStatus, {
         vmId,
         status: "running",
         flyMachineId: machine.id,
-        ip: machine.private_ip,
+        ip: terminalUrl,
       });
 
       return { success: true, vmId, appName, machineId: machine.id };
@@ -321,7 +338,24 @@ export const provisionInternal = internalAction({
               env: {
                 USER_WALLET: wallet,
               },
+              services: [
+                {
+                  ports: [
+                    {
+                      port: 443,
+                      handlers: ["tls", "http"],
+                    },
+                    {
+                      port: 80,
+                      handlers: ["http"],
+                    },
+                  ],
+                  protocol: "tcp",
+                  internal_port: 7681,
+                },
+              ],
             },
+            region,
           }),
         }
       );
@@ -332,12 +366,13 @@ export const provisionInternal = internalAction({
       }
 
       const machine = await machineRes.json();
+      const terminalUrl = `https://${appName}.fly.dev`;
 
       await ctx.runMutation(internal.vms.updateStatus, {
         vmId,
         status: "running",
         flyMachineId: machine.id,
-        ip: machine.private_ip,
+        ip: terminalUrl,
       });
 
       return { success: true, vmId, appName, machineId: machine.id };

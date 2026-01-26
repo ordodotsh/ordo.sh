@@ -1,26 +1,34 @@
-# Ordo Bot - Personal AI Assistant
+# Ordo.sh - Cloud Clawdbot Environment
 # Container: ghcr.io/ordodotsh/ordo-bot
-FROM oven/bun:1-alpine
+FROM node:22-alpine
 
-WORKDIR /app
+WORKDIR /home/dev
 
 # Install system dependencies
-RUN apk add --no-cache git curl
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    openssh-client \
+    ttyd \
+    && npm install -g clawdbot@latest
 
-# Copy bot package files
-COPY bot/package.json ./
+# Create dev user
+RUN adduser -D -s /bin/bash dev && \
+    chown -R dev:dev /home/dev
 
-# Install dependencies
-RUN bun install
+# Switch to dev user
+USER dev
 
-# Copy bot source
-COPY bot/ ./
+# Set up bash as default shell
+ENV SHELL=/bin/bash
+ENV HOME=/home/dev
 
 # Environment variables (set at runtime)
 ENV USER_WALLET=""
-ENV ANTHROPIC_API_KEY=""
-ENV TELEGRAM_BOT_TOKEN=""
-ENV DISCORD_BOT_TOKEN=""
 
-# Run the bot
-CMD ["bun", "run", "index.ts"]
+# Expose web terminal port
+EXPOSE 7681
+
+# Start ttyd with bash (run `clawdbot onboard` to configure)
+CMD ["ttyd", "-W", "-p", "7681", "bash", "-l"]

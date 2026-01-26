@@ -217,14 +217,10 @@ export function Dashboard() {
                     <span style={styles.statusValue}>{dashboard.vm.region}</span>
                   </div>
                   {dashboard.vm.status === 'running' && dashboard.vm.ip && (
-                    <a
-                      href={dashboard.vm.ip}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.terminalBtn}
-                    >
-                      Open Terminal
-                    </a>
+                    <div style={styles.statusRow}>
+                      <span style={styles.statusLabel}>Terminal</span>
+                      <span style={styles.statusValue}>Available below</span>
+                    </div>
                   )}
                   {dashboard.vm.status === 'failed' && dashboard.vm.error && (
                     <div style={styles.errorBox}>
@@ -293,16 +289,42 @@ export function Dashboard() {
             </div>
           </div>
 
+          {/* Terminal Section */}
+          {dashboard?.vm?.status === 'running' && dashboard.vm.ip && (
+            <div style={styles.terminalSection}>
+              <div style={styles.terminalHeader}>
+                <h2 style={styles.terminalTitle}>Terminal</h2>
+                <div style={styles.terminalActions}>
+                  <span style={styles.terminalHint}>Run `clawdbot onboard` to get started</span>
+                  <a
+                    href={dashboard.vm.ip}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.openNewTabBtn}
+                  >
+                    Open in new tab ↗
+                  </a>
+                </div>
+              </div>
+              <div style={styles.terminalContainer}>
+                <iframe
+                  src={dashboard.vm.ip}
+                  style={styles.terminalIframe}
+                  title="Clawdbot Terminal"
+                  allow="clipboard-read; clipboard-write"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Coming Soon Notice */}
-          <div style={styles.comingSoon}>
-            <p style={styles.comingSoonText}>
-              🚧 Dashboard features coming soon. Follow{' '}
-              <a href="https://x.com/ordodotsh" target="_blank" rel="noopener noreferrer" style={styles.link}>
-                @ordodotsh
-              </a>{' '}
-              for updates.
-            </p>
-          </div>
+          {(!dashboard?.vm || dashboard.vm.status !== 'running') && (
+            <div style={styles.comingSoon}>
+              <p style={styles.comingSoonText}>
+                Provision your instance to access the terminal.
+              </p>
+            </div>
+          )}
         </main>
       </div>
     </div>
@@ -578,5 +600,54 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center',
     textDecoration: 'none',
     cursor: 'pointer',
+  },
+  terminalSection: {
+    marginTop: 32,
+  },
+  terminalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  terminalTitle: {
+    fontSize: 20,
+    fontWeight: 600,
+    color: colors.text,
+    margin: 0,
+  },
+  terminalActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+  },
+  terminalHint: {
+    fontSize: 13,
+    color: colors.textMuted,
+    fontFamily: 'monospace',
+  },
+  openNewTabBtn: {
+    padding: '6px 12px',
+    background: colors.bgAlt,
+    color: colors.textSecondary,
+    border: `1px solid ${colors.border}`,
+    borderRadius: 6,
+    fontSize: 12,
+    fontWeight: 500,
+    textDecoration: 'none',
+    cursor: 'pointer',
+  },
+  terminalContainer: {
+    width: '100%',
+    height: 500,
+    background: '#1a1a1a',
+    borderRadius: 12,
+    overflow: 'hidden',
+    border: `1px solid ${colors.border}`,
+  },
+  terminalIframe: {
+    width: '100%',
+    height: '100%',
+    border: 'none',
   },
 }

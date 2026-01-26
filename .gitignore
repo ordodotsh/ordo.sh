@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.*
+*.log
+.DS_Store
+waitlist.json
+
+# Local/generated files
+.claude/
+convex/_generated/
+
+# npm lockfile (using bun)
+package-lock.json

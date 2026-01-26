@@ -1,0 +1,44 @@
+{
+  "users": [
+    {
+      "id": "user-001",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "role": "admin",
+      "active": true,
+      "createdAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "user-002",
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "role": "user",
+      "active": true,
+      "createdAt": "2024-01-02T00:00:00Z"
+    },
+    {
+      "id": "user-003",
+      "name": "Bob Johnson",
+      "email": "bob.johnson@example.com",
+      "role": "user",
+      "active": false,
+      "createdAt": "2024-01-03T00:00:00Z"
+    }
+  ],
+  "invalidUsers": [
+    {
+      "id": "invalid-001",
+      "name": "",
+      "email": "invalid-email",
+      "role": "unknown",
+      "active": "maybe"
+    },
+    {
+      "id": null,
+      "name": "No ID User",
+      "email": "noid@example.com",
+      "role": "user",
+      "active": true
+    }
+  ]
+}

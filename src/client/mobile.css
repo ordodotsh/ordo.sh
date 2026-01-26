@@ -1,0 +1,174 @@
+/* Mobile responsive styles for ordo.sh */
+
+@media (max-width: 768px) {
+  /* Hero section */
+  .hero {
+    margin-bottom: 60px !important;
+  }
+
+  /* Hero headline */
+  .headline {
+    font-size: 32px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 22px !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Reduce section spacing */
+  .section {
+    margin-bottom: 48px !important;
+  }
+
+  /* Problem/Solution grid - stack vertically */
+  .problem-solution {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* Hide arrow on mobile */
+  .arrow-container {
+    display: none !important;
+  }
+
+  /* Steps grid - stack vertically */
+  .steps-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Features grid - single column */
+  .features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Reduce rocket animation size */
+  .rocket-lottie {
+    width: 100px !important;
+    height: 100px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Content container padding */
+  .content {
+    padding: 32px 16px !important;
+  }
+
+  /* Platform cards */
+  .platforms-grid {
+    gap: 10px !important;
+  }
+
+  .platform-card {
+    min-width: 80px !important;
+    padding: 14px 16px !important;
+  }
+
+  .platform-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  /* CTA card */
+  .cta-card {
+    padding: 24px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  /* Subheadline */
+  .subheadline {
+    font-size: 15px !important;
+    margin-bottom: 24px !important;
+  }
+
+  /* X button */
+  .x-button {
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Cat modal */
+  .cat-lottie {
+    width: 220px !important;
+    height: 220px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    margin-bottom: 48px !important;
+  }
+
+  .headline {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+  }
+
+  .section-title {
+    font-size: 20px !important;
+  }
+
+  .section {
+    margin-bottom: 40px !important;
+  }
+
+  .rocket-lottie {
+    width: 80px !important;
+    height: 80px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .content {
+    padding: 24px 12px !important;
+  }
+
+  .platform-card {
+    min-width: 72px !important;
+    padding: 12px 14px !important;
+  }
+
+  .platform-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .subheadline {
+    font-size: 14px !important;
+  }
+
+  .x-button {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+  }
+
+  .cta-card {
+    padding: 20px 14px !important;
+  }
+
+  .cat-lottie {
+    width: 180px !important;
+    height: 180px !important;
+  }
+
+  .problem-card,
+  .solution-card {
+    padding: 20px !important;
+    border-radius: 12px !important;
+  }
+
+  .step-card {
+    padding: 16px !important;
+  }
+
+  .feature-card {
+    padding: 16px !important;
+    border-radius: 10px !important;
+  }
+}

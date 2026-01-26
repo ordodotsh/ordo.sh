@@ -1,0 +1,62 @@
+ORDO.SH DEMO VIDEO - VOICEOVER SCRIPT (v2)
+==========================================
+Total Duration: 35 seconds
+Voice Style: Confident, friendly, modern tech startup tone
+
+---
+
+[0:00 - 0:04] INTRO
+"Ordo dot sh. From chaos, order."
+
+[0:04 - 0:08] PROBLEM
+"Running AI locally? That means expensive hardware, high electricity bills, and endless maintenance."
+
+[0:08 - 0:12] SOLUTION
+"Meet your personal AI assistant, powered by Claude Opus, running in the cloud twenty-four seven."
+
+[0:12 - 0:18] EXAMPLES
+"Just message it. Check me in for my flight. Summarize my emails. Create that GitHub issue. It handles it all."
+
+[0:18 - 0:23] FEATURES
+"Persistent memory. Web browsing. File management. Automations. Fifty plus integrations. All on your own private instance."
+
+[0:23 - 0:27] HOW IT WORKS
+"Connect your wallet. Subscribe for point two SOL a month. Start chatting."
+
+[0:27 - 0:30] PLATFORMS
+"Telegram. Discord. WhatsApp. Slack. Wherever you are."
+
+[0:30 - 0:35] CTA
+"Ordo dot sh. Your AI assistant in the cloud. Coming soon."
+
+---
+
+SCENE BREAKDOWN (35 seconds @ 30fps = 1050 frames):
+- Intro: 0-120 (4s)
+- Problem: 120-240 (4s)
+- Solution: 240-360 (4s)
+- Examples: 360-540 (6s)
+- Features: 540-690 (5s)
+- How It Works: 690-810 (4s)
+- Platforms: 810-900 (3s)
+- CTA: 900-1050 (5s)
+
+---
+
+FULL SCRIPT (single block for ElevenLabs):
+------------------------------------------
+Ordo dot sh. From chaos, order.
+
+Running AI locally? That means expensive hardware, high electricity bills, and endless maintenance.
+
+Meet your personal AI assistant, powered by Claude Opus, running in the cloud twenty-four seven.
+
+Just message it. Check me in for my flight. Summarize my emails. Create that GitHub issue. It handles it all.
+
+Persistent memory. Web browsing. File management. Automations. Fifty plus integrations. All on your own private instance.
+
+Connect your wallet. Subscribe for point two SOL a month. Start chatting.
+
+Telegram. Discord. WhatsApp. Slack. Wherever you are.
+
+Ordo dot sh. Your AI assistant in the cloud. Coming soon.

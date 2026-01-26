@@ -71,6 +71,29 @@ export const provision = action({
     const appName = `ordo-${wallet.slice(0, 8).toLowerCase()}-${Date.now().toString(36)}`;
     const region = "iad"; // US East, can make configurable
 
+    // Fetch user's credentials and connections
+    const credentials = await ctx.runQuery(internal.credentials.getFull, { userId });
+    const connections = await ctx.runQuery(internal.connections.getAllFull, { userId });
+
+    // Build environment variables for the container
+    const envVars: Record<string, string> = {
+      USER_WALLET: wallet,
+      ORDO_AUTO_CONFIG: "true", // Signal to startup script to auto-configure
+    };
+
+    // Add Anthropic API key if set
+    if (credentials?.anthropicKey) {
+      envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
+    }
+
+    // Add channel tokens
+    for (const conn of connections) {
+      const envKey = `${conn.platform.toUpperCase()}_TOKEN`;
+      if (conn.token) {
+        envVars[envKey] = conn.token;
+      }
+    }
+
     // Create VM record first (provisioning status)
     const vmId: Id<"vms"> = await ctx.runMutation(internal.vms.create, {
       userId,
@@ -152,9 +175,7 @@ export const provision = action({
                 cpus: 2,
                 memory_mb: 2048,
               },
-              env: {
-                USER_WALLET: wallet,
-              },
+              env: envVars,
               services: [
                 {
                   ports: [
@@ -185,7 +206,7 @@ export const provision = action({
       const machine = await machineRes.json();
       const terminalUrl = `https://${appName}.fly.dev`;
 
-      // 3. Update VM record with machine info
+      // 4. Update VM record with machine info
       await ctx.runMutation(internal.vms.updateStatus, {
         vmId,
         status: "running",
@@ -311,6 +332,27 @@ export const provisionInternal = internalAction({
     const appName = `ordo-${wallet.slice(0, 8).toLowerCase()}-${Date.now().toString(36)}`;
     const region = "iad";
 
+    // Fetch user's credentials and connections
+    const credentials = await ctx.runQuery(internal.credentials.getFull, { userId });
+    const connections = await ctx.runQuery(internal.connections.getAllFull, { userId });
+
+    // Build environment variables for the container
+    const envVars: Record<string, string> = {
+      USER_WALLET: wallet,
+      ORDO_AUTO_CONFIG: "true",
+    };
+
+    if (credentials?.anthropicKey) {
+      envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
+    }
+
+    for (const conn of connections) {
+      const envKey = `${conn.platform.toUpperCase()}_TOKEN`;
+      if (conn.token) {
+        envVars[envKey] = conn.token;
+      }
+    }
+
     const vmId: Id<"vms"> = await ctx.runMutation(internal.vms.create, {
       userId,
       flyAppName: appName,
@@ -389,9 +431,7 @@ export const provisionInternal = internalAction({
                 cpus: 2,
                 memory_mb: 2048,
               },
-              env: {
-                USER_WALLET: wallet,
-              },
+              env: envVars,
               services: [
                 {
                   ports: [

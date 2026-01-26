@@ -43,6 +43,13 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_fly_app", ["flyAppName"]),
 
+  // User credentials - API keys for clawdbot
+  credentials: defineTable({
+    userId: v.id("users"),
+    anthropicKey: v.optional(v.string()),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   // Chat connections - Telegram, Discord, etc.
   connections: defineTable({
     userId: v.id("users"),
@@ -52,7 +59,9 @@ export default defineSchema({
       v.literal("slack"),
       v.literal("whatsapp")
     ),
-    config: v.optional(v.any()),
+    token: v.optional(v.string()), // Bot token for the platform
+    config: v.optional(v.any()),   // Additional platform-specific config
+    status: v.union(v.literal("active"), v.literal("inactive")),
     connectedAt: v.number(),
   }).index("by_user", ["userId"]),
 

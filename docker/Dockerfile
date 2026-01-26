@@ -9,6 +9,7 @@ RUN apk add --no-cache \
     git \
     curl \
     bash \
+    jq \
     openssh-client \
     ttyd \
     && npm install -g clawdbot@latest
@@ -17,6 +18,10 @@ RUN apk add --no-cache \
 RUN adduser -D -s /bin/bash dev && \
     chown -R dev:dev /home/dev
 
+# Copy startup script
+COPY docker/startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
+
 # Switch to dev user
 USER dev
 
@@ -24,11 +29,17 @@ USER dev
 ENV SHELL=/bin/bash
 ENV HOME=/home/dev
 
-# Environment variables (set at runtime)
+# Environment variables (set at runtime by Ordo.sh)
 ENV USER_WALLET=""
+ENV ORDO_AUTO_CONFIG=""
+ENV ANTHROPIC_API_KEY=""
+ENV TELEGRAM_TOKEN=""
+ENV DISCORD_TOKEN=""
+ENV SLACK_TOKEN=""
+ENV WHATSAPP_TOKEN=""
 
 # Expose web terminal port
 EXPOSE 7681
 
-# Start ttyd with bash (run `clawdbot onboard` to configure)
-CMD ["ttyd", "-W", "-p", "7681", "bash", "-l"]
+# Start with auto-config script
+CMD ["/usr/local/bin/startup.sh"]

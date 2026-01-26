@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { api } from "./_generated/api";
 
 // Admin wallets - these get free lifetime access
 const ADMIN_WALLETS = [

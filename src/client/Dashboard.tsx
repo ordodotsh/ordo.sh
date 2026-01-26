@@ -22,10 +22,42 @@ const colors = {
 }
 
 const PLATFORMS = [
-  { id: 'telegram', name: 'Telegram', icon: '✈️', placeholder: 'Bot token from @BotFather' },
-  { id: 'discord', name: 'Discord', icon: '🎮', placeholder: 'Bot token from Discord Developer Portal' },
-  { id: 'slack', name: 'Slack', icon: '💬', placeholder: 'Bot token from Slack API' },
-  { id: 'whatsapp', name: 'WhatsApp', icon: '📱', placeholder: 'API token from WhatsApp Business' },
+  {
+    id: 'telegram',
+    name: 'Telegram',
+    icon: '✈️',
+    placeholder: 'e.g. 123456789:ABCdefGHIjklMNOpqrsTUVwxyz',
+    guide: 'Message @BotFather on Telegram → /newbot → copy the token',
+    link: 'https://t.me/BotFather',
+    linkText: 'Open BotFather',
+  },
+  {
+    id: 'discord',
+    name: 'Discord',
+    icon: '🎮',
+    placeholder: 'e.g. MTIzNDU2Nzg5MDEyMzQ1Njc4OQ...',
+    guide: 'Discord Developer Portal → New Application → Bot → Reset Token',
+    link: 'https://discord.com/developers/applications',
+    linkText: 'Open Developer Portal',
+  },
+  {
+    id: 'slack',
+    name: 'Slack',
+    icon: '💬',
+    placeholder: 'e.g. xoxb-123456789012-1234567890123-abc...',
+    guide: 'Slack API → Create App → OAuth & Permissions → Bot Token',
+    link: 'https://api.slack.com/apps',
+    linkText: 'Open Slack API',
+  },
+  {
+    id: 'whatsapp',
+    name: 'WhatsApp',
+    icon: '📱',
+    placeholder: 'e.g. EAABsbCS1iH0BAJ...',
+    guide: 'Meta Business Suite → WhatsApp → API Setup → Access Token',
+    link: 'https://business.facebook.com/settings/whatsapp-business-accounts',
+    linkText: 'Open Meta Business',
+  },
 ] as const
 
 export function Dashboard() {
@@ -366,6 +398,19 @@ export function Dashboard() {
                         Cancel
                       </button>
                     </div>
+                    <div style={styles.guideBox}>
+                      <p style={styles.guideText}>
+                        {PLATFORMS.find(p => p.id === activeChannel)?.guide}
+                      </p>
+                      <a
+                        href={PLATFORMS.find(p => p.id === activeChannel)?.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={styles.guideLink}
+                      >
+                        {PLATFORMS.find(p => p.id === activeChannel)?.linkText} →
+                      </a>
+                    </div>
                     <input
                       type="password"
                       placeholder={PLATFORMS.find(p => p.id === activeChannel)?.placeholder}
@@ -376,7 +421,7 @@ export function Dashboard() {
                     <button
                       style={{
                         ...styles.primaryBtn,
-                        marginTop: 8,
+                        marginTop: 12,
                         opacity: !channelToken || savingChannel ? 0.7 : 1,
                       }}
                       onClick={handleSaveChannel}
@@ -874,6 +919,26 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
+  },
+  guideBox: {
+    background: '#FEF3C7',
+    border: '1px solid #FCD34D',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  guideText: {
+    fontSize: 13,
+    color: '#92400E',
+    margin: 0,
+    marginBottom: 8,
+    lineHeight: 1.4,
+  },
+  guideLink: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: colors.accent,
+    textDecoration: 'none',
   },
   launchBtn: {
     width: '100%',

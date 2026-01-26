@@ -27,7 +27,9 @@ export function Dashboard() {
   const dashboard = useQuery(api.users.getDashboard, walletAddress ? { wallet: walletAddress } : 'skip')
   const { pay, paying } = usePayment()
   const retryProvision = useAction(api.vms.retry)
+  const provisionVm = useAction(api.vms.provision)
   const [retrying, setRetrying] = useState(false)
+  const [provisioning, setProvisioning] = useState(false)
 
   const handleRetry = async () => {
     if (!walletAddress) return
@@ -43,6 +45,23 @@ export function Dashboard() {
       })
     } finally {
       setRetrying(false)
+    }
+  }
+
+  const handleProvision = async () => {
+    if (!walletAddress || !dashboard?.user) return
+    setProvisioning(true)
+    try {
+      await provisionVm({ userId: dashboard.user._id, wallet: walletAddress })
+      toast.success('Provisioning started', {
+        description: 'Your instance is being created',
+      })
+    } catch (err) {
+      toast.error('Failed to provision', {
+        description: err instanceof Error ? err.message : 'Unknown error',
+      })
+    } finally {
+      setProvisioning(false)
     }
   }
 
@@ -230,7 +249,22 @@ export function Dashboard() {
               ) : (
                 <div style={styles.emptyState}>
                   <p style={styles.emptyText}>No instance provisioned</p>
-                  <p style={styles.emptyHint}>Subscribe to get your own Clawdbot instance</p>
+                  {dashboard?.subscription ? (
+                    <button
+                      style={{
+                        ...styles.primaryBtn,
+                        opacity: provisioning ? 0.7 : 1,
+                        cursor: provisioning ? 'wait' : 'pointer',
+                        marginTop: 12,
+                      }}
+                      onClick={handleProvision}
+                      disabled={provisioning}
+                    >
+                      {provisioning ? 'Provisioning...' : 'Provision Instance'}
+                    </button>
+                  ) : (
+                    <p style={styles.emptyHint}>Subscribe to get your own Clawdbot instance</p>
+                  )}
                 </div>
               )}
             </div>

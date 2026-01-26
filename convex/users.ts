@@ -38,26 +38,13 @@ export const getOrCreate = mutation({
           .first();
 
         if (!existingSub) {
-          // Create lifetime admin subscription
+          // Create lifetime admin subscription (no auto-provisioning - admins use manual button)
           await ctx.db.insert("subscriptions", {
             userId: existing._id,
             status: "active",
             paidAt: Date.now(),
             expiresAt: Date.now() + (100 * 365 * 24 * 60 * 60 * 1000), // 100 years
           });
-
-          // Trigger VM provisioning
-          const existingVm = await ctx.db
-            .query("vms")
-            .withIndex("by_user", (q) => q.eq("userId", existing._id))
-            .first();
-
-          if (!existingVm) {
-            await ctx.scheduler.runAfter(0, api.vms.provision, {
-              userId: existing._id,
-              wallet,
-            });
-          }
         }
       }
       return existing;
@@ -68,19 +55,13 @@ export const getOrCreate = mutation({
       createdAt: Date.now(),
     });
 
-    // Auto-subscribe admins
+    // Auto-subscribe admins (no auto-provisioning - admins use manual button)
     if (isAdmin(wallet)) {
       await ctx.db.insert("subscriptions", {
         userId,
         status: "active",
         paidAt: Date.now(),
         expiresAt: Date.now() + (100 * 365 * 24 * 60 * 60 * 1000), // 100 years
-      });
-
-      // Trigger VM provisioning
-      await ctx.scheduler.runAfter(0, api.vms.provision, {
-        userId,
-        wallet,
       });
     }
 

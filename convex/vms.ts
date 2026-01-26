@@ -103,7 +103,34 @@ export const provision = action({
         throw new Error(`Failed to create app: ${error}`);
       }
 
-      // 2. Create Machine with bot image
+      // 2. Allocate shared IPv4 address
+      const ipRes = await fetch("https://api.fly.io/graphql", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${flyToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `mutation($input: AllocateIPAddressInput!) {
+            allocateIpAddress(input: $input) {
+              ipAddress { id address type }
+            }
+          }`,
+          variables: {
+            input: {
+              appId: appName,
+              type: "shared_v4",
+            },
+          },
+        }),
+      });
+
+      if (!ipRes.ok) {
+        const error = await ipRes.text();
+        throw new Error(`Failed to allocate IP: ${error}`);
+      }
+
+      // 3. Create Machine with bot image
       const botImage = process.env.BOT_IMAGE;
       if (!botImage) {
         throw new Error("BOT_IMAGE not configured");
@@ -312,6 +339,33 @@ export const provisionInternal = internalAction({
       if (!appRes.ok) {
         const error = await appRes.text();
         throw new Error(`Failed to create app: ${error}`);
+      }
+
+      // Allocate shared IPv4 address
+      const ipRes = await fetch("https://api.fly.io/graphql", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${flyToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `mutation($input: AllocateIPAddressInput!) {
+            allocateIpAddress(input: $input) {
+              ipAddress { id address type }
+            }
+          }`,
+          variables: {
+            input: {
+              appId: appName,
+              type: "shared_v4",
+            },
+          },
+        }),
+      });
+
+      if (!ipRes.ok) {
+        const error = await ipRes.text();
+        throw new Error(`Failed to allocate IP: ${error}`);
       }
 
       const botImage = process.env.BOT_IMAGE;

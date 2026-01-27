@@ -357,16 +357,16 @@ export function Dashboard() {
 
         <main style={styles.main}>
           {/* Hero Section */}
-          <div style={styles.hero}>
-            <h1 style={styles.title}>Your AI Assistant, Everywhere</h1>
-            <p style={styles.subtitle}>
+          <div className="hero-section" style={styles.hero}>
+            <h1 className="hero-title" style={styles.title}>Your AI Assistant, Everywhere</h1>
+            <p className="hero-subtitle" style={styles.subtitle}>
               Connect clawdbot to Telegram, Discord, Slack, and WhatsApp in minutes.
               No servers to manage. No code to write.
             </p>
           </div>
 
           {/* Progress Steps */}
-          <div style={styles.stepsContainer}>
+          <div className="steps-container" style={styles.stepsContainer}>
             {[
               { num: 1, label: 'Subscribe' },
               { num: 2, label: 'API Key' },
@@ -375,6 +375,7 @@ export function Dashboard() {
             ].map((step) => (
               <div key={step.num} style={styles.step}>
                 <div
+                  className="step-circle"
                   style={{
                     ...styles.stepCircle,
                     background: currentStep > step.num ? currentColors.green : currentStep === step.num ? currentColors.accent : currentColors.border,
@@ -400,14 +401,14 @@ export function Dashboard() {
             {/* Setup Cards */}
             <div className="setup-grid" style={styles.setupGrid}>
               {/* Step 1: Subscribe */}
-              <div style={{
+              <div className="dashboard-card" style={{
                 ...styles.card,
                 opacity: currentStep === 1 ? 1 : 0.6,
                 border: currentStep === 1 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
               }}>
-                <div style={styles.cardHeader}>
-                  <span style={styles.stepBadge}>1</span>
-                  <h3 style={styles.cardTitle}>Subscribe</h3>
+                <div className="card-header" style={styles.cardHeader}>
+                  <span className="step-badge" style={styles.stepBadge}>1</span>
+                  <h3 className="card-title" style={styles.cardTitle}>Subscribe</h3>
                   {hasSubscription && <span style={styles.checkMark}>✓</span>}
                 </div>
                 {hasSubscription ? (
@@ -441,15 +442,15 @@ export function Dashboard() {
               </div>
 
               {/* Step 2: API Key */}
-              <div style={{
+              <div className="dashboard-card" style={{
                 ...styles.card,
                 opacity: currentStep >= 2 ? 1 : 0.4,
                 border: currentStep === 2 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
                 pointerEvents: currentStep >= 2 ? 'auto' : 'none',
               }}>
-                <div style={styles.cardHeader}>
-                  <span style={styles.stepBadge}>2</span>
-                  <h3 style={styles.cardTitle}>Anthropic API Key</h3>
+                <div className="card-header" style={styles.cardHeader}>
+                  <span className="step-badge" style={styles.stepBadge}>2</span>
+                  <h3 className="card-title" style={styles.cardTitle}>Anthropic API Key</h3>
                   {hasApiKey && <span style={styles.checkMark}>✓</span>}
                 </div>
                 {hasApiKey ? (
@@ -494,15 +495,15 @@ export function Dashboard() {
               </div>
 
               {/* Step 3: Channels */}
-              <div style={{
+              <div className="dashboard-card" style={{
                 ...styles.card,
                 opacity: currentStep >= 3 ? 1 : 0.4,
                 border: currentStep === 3 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
                 pointerEvents: currentStep >= 3 ? 'auto' : 'none',
               }}>
-                <div style={styles.cardHeader}>
-                  <span style={styles.stepBadge}>3</span>
-                  <h3 style={styles.cardTitle}>Connect Channels</h3>
+                <div className="card-header" style={styles.cardHeader}>
+                  <span className="step-badge" style={styles.stepBadge}>3</span>
+                  <h3 className="card-title" style={styles.cardTitle}>Connect Channels</h3>
                   {hasChannels && <span style={styles.checkMark}>✓</span>}
                 </div>
 
@@ -512,7 +513,7 @@ export function Dashboard() {
                     {connections.map((conn) => {
                       const platform = PLATFORMS.find(p => p.id === conn.platform)
                       return (
-                        <div key={conn._id} style={styles.connectedItem}>
+                        <div key={conn._id} className="connected-item" style={styles.connectedItem}>
                           <div style={styles.connectedPlatformInfo}>
                             <img src={platform?.icon} alt={platform?.name} style={styles.connectedIcon} />
                             <span style={styles.connectedPlatform}>{platform?.name}</span>
@@ -590,6 +591,7 @@ export function Dashboard() {
                       return (
                         <button
                           key={platform.id}
+                          className="platform-btn"
                           style={{
                             ...styles.platformBtn,
                             opacity: isConnected ? 0.5 : 1,
@@ -597,7 +599,7 @@ export function Dashboard() {
                           onClick={() => !isConnected && setActiveChannel(platform.id)}
                           disabled={isConnected}
                         >
-                          <img src={platform.icon} alt={platform.name} style={styles.platformIconImg} />
+                          <img src={platform.icon} alt={platform.name} className="platform-icon-img" style={styles.platformIconImg} />
                           <span>{platform.name}</span>
                           {isConnected && <span style={styles.connectedBadge}>✓</span>}
                         </button>
@@ -608,15 +610,15 @@ export function Dashboard() {
               </div>
 
               {/* Step 4: Launch */}
-              <div style={{
+              <div className="dashboard-card" style={{
                 ...styles.card,
                 opacity: currentStep >= 4 ? 1 : 0.4,
                 border: currentStep === 4 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
                 pointerEvents: currentStep >= 4 ? 'auto' : 'none',
               }}>
-                <div style={styles.cardHeader}>
-                  <span style={styles.stepBadge}>4</span>
-                  <h3 style={styles.cardTitle}>Launch Instance</h3>
+                <div className="card-header" style={styles.cardHeader}>
+                  <span className="step-badge" style={styles.stepBadge}>4</span>
+                  <h3 className="card-title" style={styles.cardTitle}>Launch Instance</h3>
                   {vmRunning && <span style={styles.checkMark}>✓</span>}
                 </div>
 
@@ -689,17 +691,54 @@ export function Dashboard() {
             {/* Terminal Section - Full Width Below */}
             {vmRunning && dashboard?.vm?.ip && (
               <div style={styles.terminalSection}>
+                {/* Bot Status Info */}
+                <div style={styles.botStatusCard}>
+                  <div style={styles.botStatusHeader}>
+                    <div style={styles.botStatusLeft}>
+                      <span style={styles.botStatusIcon}>🤖</span>
+                      <div>
+                        <h3 style={styles.botStatusTitle}>Your Clawdbot is Running</h3>
+                        <p style={styles.botStatusSubtitle}>Auto-configured with your API key and channels</p>
+                      </div>
+                    </div>
+                    <div style={styles.botStatusBadge}>
+                      <span style={styles.botStatusDot} />
+                      Active
+                    </div>
+                  </div>
+                  <div style={styles.botStatusInfo}>
+                    <div style={styles.infoItem}>
+                      <span style={styles.infoLabel}>What's happening:</span>
+                      <span style={styles.infoValue}>Clawdbot is listening for messages on your connected channels</span>
+                    </div>
+                    <div style={styles.infoItem}>
+                      <span style={styles.infoLabel}>Tip:</span>
+                      <span style={styles.infoValue}>Send a message to your bot on Telegram/Discord to test it!</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Terminal Card */}
                 <div style={styles.terminalCard}>
                   <div style={styles.terminalHeader}>
-                    <h3 style={styles.terminalTitle}>Terminal</h3>
+                    <div style={styles.terminalHeaderLeft}>
+                      <h3 style={styles.terminalTitle}>Terminal</h3>
+                      <span style={styles.terminalBadge}>Advanced</span>
+                    </div>
+                    <span style={styles.terminalHint}>For debugging only - everything is auto-configured!</span>
                   </div>
-                  <div style={styles.terminalContainer}>
+                  <div className="terminal-container" style={styles.terminalContainer}>
                     <iframe
                       src={dashboard.vm.ip}
                       style={styles.terminalIframe}
                       title="Clawdbot Terminal"
                       allow="clipboard-read; clipboard-write"
                     />
+                  </div>
+                  <div style={styles.terminalFooter}>
+                    <span style={styles.terminalFooterText}>
+                      Useful commands: <code style={styles.codeSnippet}>tail -f ~/.clawdbot/clawdbot.log</code> (view logs) · <code style={styles.codeSnippet}>clawdbot --help</code> (all commands)
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1283,6 +1322,79 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     fontSize: 13,
     color: c.textSecondary,
   },
+  botStatusCard: {
+    background: c.cardBg,
+    borderRadius: 16,
+    border: `1px solid ${c.border}`,
+    padding: 20,
+    marginBottom: 16,
+  },
+  botStatusHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  botStatusLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  botStatusIcon: {
+    fontSize: 32,
+  },
+  botStatusTitle: {
+    fontSize: 18,
+    fontWeight: 600,
+    color: c.text,
+    margin: 0,
+  },
+  botStatusSubtitle: {
+    fontSize: 13,
+    color: c.textSecondary,
+    margin: 0,
+    marginTop: 2,
+  },
+  botStatusBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '6px 12px',
+    background: c.successBg,
+    color: c.green,
+    borderRadius: 20,
+    fontSize: 13,
+    fontWeight: 600,
+  },
+  botStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: c.green,
+    animation: 'pulse 2s infinite',
+  },
+  botStatusInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    padding: 12,
+    background: c.bgAlt,
+    borderRadius: 8,
+  },
+  infoItem: {
+    display: 'flex',
+    gap: 8,
+    fontSize: 13,
+    lineHeight: 1.4,
+  },
+  infoLabel: {
+    color: c.textMuted,
+    fontWeight: 500,
+    flexShrink: 0,
+  },
+  infoValue: {
+    color: c.textSecondary,
+  },
   terminalCard: {
     background: c.cardBg,
     borderRadius: 16,
@@ -1296,11 +1408,44 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     padding: '16px 20px',
     borderBottom: `1px solid ${c.border}`,
   },
+  terminalHeaderLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+  },
   terminalTitle: {
     fontSize: 16,
     fontWeight: 600,
     color: c.text,
     margin: 0,
+  },
+  terminalBadge: {
+    padding: '3px 8px',
+    background: c.bgAlt,
+    color: c.textMuted,
+    borderRadius: 4,
+    fontSize: 11,
+    fontWeight: 500,
+  },
+  terminalHint: {
+    fontSize: 12,
+    color: c.textMuted,
+  },
+  terminalFooter: {
+    padding: '12px 20px',
+    borderTop: `1px solid ${c.border}`,
+    background: c.bgAlt,
+  },
+  terminalFooterText: {
+    fontSize: 12,
+    color: c.textMuted,
+  },
+  codeSnippet: {
+    fontFamily: 'monospace',
+    background: c.cardBg,
+    padding: '2px 6px',
+    borderRadius: 4,
+    color: c.accent,
   },
   terminalContainer: {
     width: '100%',
@@ -1440,20 +1585,86 @@ styleSheet.textContent = `
   @media (max-width: 768px) {
     .setup-grid {
       grid-template-columns: 1fr !important;
+      gap: 12px !important;
     }
     
     .platform-grid {
       grid-template-columns: 1fr 1fr !important;
+      gap: 6px !important;
     }
     
     .faq-grid {
       grid-template-columns: 1fr !important;
     }
+    
+    .dashboard-card {
+      padding: 16px !important;
+    }
+    
+    .steps-container {
+      gap: 24px !important;
+      padding: 16px 0 !important;
+      margin-bottom: 24px !important;
+    }
+    
+    .step-circle {
+      width: 28px !important;
+      height: 28px !important;
+      font-size: 12px !important;
+    }
+    
+    .hero-section {
+      margin-bottom: 20px !important;
+    }
+    
+    .hero-title {
+      font-size: 24px !important;
+    }
+    
+    .hero-subtitle {
+      font-size: 14px !important;
+    }
   }
   
   @media (max-width: 480px) {
     .platform-grid {
-      grid-template-columns: 1fr !important;
+      grid-template-columns: 1fr 1fr !important;
+    }
+    
+    .platform-btn {
+      padding: 12px 8px !important;
+      font-size: 12px !important;
+    }
+    
+    .platform-icon-img {
+      width: 24px !important;
+      height: 24px !important;
+    }
+    
+    .dashboard-card {
+      padding: 14px !important;
+    }
+    
+    .card-title {
+      font-size: 14px !important;
+    }
+    
+    .card-header {
+      margin-bottom: 12px !important;
+    }
+    
+    .step-badge {
+      width: 20px !important;
+      height: 20px !important;
+      font-size: 10px !important;
+    }
+    
+    .connected-item {
+      padding: 8px 10px !important;
+    }
+    
+    .terminal-container {
+      height: 400px !important;
     }
   }
 `

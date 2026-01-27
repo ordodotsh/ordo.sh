@@ -5,7 +5,7 @@
 set -e
 
 CONFIG_DIR="$HOME/.clawdbot"
-CONFIG_FILE="$CONFIG_DIR/config.json"
+CONFIG_FILE="$CONFIG_DIR/clawdbot.json"
 
 echo "========================================"
 echo "  Welcome to Ordo.sh"
@@ -13,79 +13,149 @@ echo "  Your AI Assistant Platform"
 echo "========================================"
 echo ""
 
-# Create config directory
+# Create config directory and workspace
 mkdir -p "$CONFIG_DIR"
+mkdir -p "$HOME/clawd"
 
 # Check if we should auto-configure
 if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   echo "Auto-configuring clawdbot..."
 
-  # Build the config JSON
-  config='{}'
+  # Start building the config JSON with proper clawdbot structure
+  config='{
+    "agent": {
+      "model": "anthropic/claude-sonnet-4-20250514"
+    },
+    "agents": {
+      "defaults": {
+        "workspace": "~/clawd"
+      }
+    },
+    "gateway": {
+      "port": 18789,
+      "auth": {
+        "mode": "none"
+      }
+    },
+    "channels": {}
+  }'
 
-  # Add Anthropic API key if provided
-  if [ -n "$ANTHROPIC_API_KEY" ]; then
-    echo "  - Anthropic API key configured"
-    config=$(echo "$config" | jq --arg key "$ANTHROPIC_API_KEY" '. + {anthropicApiKey: $key}')
-  else
-    echo "  ! No Anthropic API key found"
-  fi
-
-  # Build channels array
-  channels='[]'
-
-  # Telegram
+  # Add Telegram channel if token provided
   if [ -n "$TELEGRAM_TOKEN" ]; then
     echo "  - Telegram bot configured"
-    channels=$(echo "$channels" | jq --arg token "$TELEGRAM_TOKEN" '. + [{type: "telegram", token: $token, enabled: true}]')
+    config=$(echo "$config" | jq --arg token "$TELEGRAM_TOKEN" '.channels.telegram = {
+      "enabled": true,
+      "token": $token,
+      "dm": {
+        "policy": "open"
+      }
+    }')
   fi
 
-  # Discord
+  # Add Discord channel if token provided
   if [ -n "$DISCORD_TOKEN" ]; then
     echo "  - Discord bot configured"
-    channels=$(echo "$channels" | jq --arg token "$DISCORD_TOKEN" '. + [{type: "discord", token: $token, enabled: true}]')
+    config=$(echo "$config" | jq --arg token "$DISCORD_TOKEN" '.channels.discord = {
+      "enabled": true,
+      "token": $token,
+      "dm": {
+        "policy": "open"
+      }
+    }')
   fi
 
-  # Slack
+  # Add Slack channel if token provided
   if [ -n "$SLACK_TOKEN" ]; then
     echo "  - Slack bot configured"
-    channels=$(echo "$channels" | jq --arg token "$SLACK_TOKEN" '. + [{type: "slack", token: $token, enabled: true}]')
+    config=$(echo "$config" | jq --arg token "$SLACK_TOKEN" '.channels.slack = {
+      "enabled": true,
+      "token": $token,
+      "dm": {
+        "policy": "open"
+      }
+    }')
   fi
 
-  # WhatsApp
+  # Add WhatsApp channel if token provided
   if [ -n "$WHATSAPP_TOKEN" ]; then
     echo "  - WhatsApp configured"
-    channels=$(echo "$channels" | jq --arg token "$WHATSAPP_TOKEN" '. + [{type: "whatsapp", token: $token, enabled: true}]')
+    config=$(echo "$config" | jq --arg token "$WHATSAPP_TOKEN" '.channels.whatsapp = {
+      "enabled": true,
+      "token": $token,
+      "dm": {
+        "policy": "open"
+      }
+    }')
   fi
 
-  # Add channels to config
-  config=$(echo "$config" | jq --argjson channels "$channels" '. + {channels: $channels}')
+  # Check if no API key
+  if [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "  ! No Anthropic API key found"
+  else
+    echo "  - Anthropic API key detected (set via env)"
+  fi
 
   # Write config file
-  echo "$config" > "$CONFIG_FILE"
+  echo "$config" | jq '.' > "$CONFIG_FILE"
   echo ""
   echo "Configuration saved to $CONFIG_FILE"
   echo ""
 
-  # Start clawdbot in the background if API key is set
-  if [ -n "$ANTHROPIC_API_KEY" ] && [ "$(echo "$channels" | jq 'length')" -gt 0 ]; then
-    echo "Starting clawdbot..."
-    nohup clawdbot start > "$HOME/.clawdbot/clawdbot.log" 2>&1 &
-    echo "Clawdbot is running in the background."
-    echo "View logs: tail -f ~/.clawdbot/clawdbot.log"
+  # Count configured channels
+  channel_count=$(echo "$config" | jq '.channels | length')
+
+  # Start clawdbot gateway in the background if API key is set and channels configured
+  if [ -n "$ANTHROPIC_API_KEY" ] && [ "$channel_count" -gt 0 ]; then
+    echo "Starting clawdbot gateway..."
+    # Export the API key so clawdbot can use it
+    export ANTHROPIC_API_KEY
+
+    # Start the gateway with verbose logging
+    nohup clawdbot gateway --port 18789 --verbose > "$HOME/.clawdbot/clawdbot.log" 2>&1 &
+    GATEWAY_PID=$!
+    sleep 3
+
+    if kill -0 $GATEWAY_PID 2>/dev/null; then
+      echo ""
+      echo "========================================"
+      echo "  Clawdbot is running!"
+      echo "========================================"
+      echo ""
+      echo "  Your bot is now listening for messages"
+      echo "  on your connected channels."
+      echo ""
+      echo "  View logs: tail -f ~/.clawdbot/clawdbot.log"
+      echo ""
+    else
+      echo ""
+      echo "! Gateway may have failed to start."
+      echo "  Check logs: cat ~/.clawdbot/clawdbot.log"
+      echo ""
+      echo "  To configure manually, run:"
+      echo "    clawdbot onboard --install-daemon"
+      echo ""
+    fi
   else
-    echo "Clawdbot not started - missing API key or channels."
-    echo "Run 'clawdbot onboard' to configure manually."
+    if [ -z "$ANTHROPIC_API_KEY" ]; then
+      echo "! Missing Anthropic API key."
+    fi
+    if [ "$channel_count" -eq 0 ]; then
+      echo "! No channels configured."
+    fi
+    echo ""
+    echo "To set up manually, run:"
+    echo "  clawdbot onboard --install-daemon"
   fi
 else
   echo "Manual configuration mode."
-  echo "Run 'clawdbot onboard' to set up your bot."
+  echo ""
+  echo "To set up your bot, run:"
+  echo "  clawdbot onboard --install-daemon"
 fi
 
 echo ""
 echo "========================================"
 echo "  Terminal ready"
-echo "  Type 'clawdbot --help' for commands"
 echo "========================================"
 echo ""
 

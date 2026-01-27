@@ -68,6 +68,12 @@ const PLATFORMS = [
     guide: 'Message @BotFather on Telegram → /newbot → copy the token',
     link: 'https://t.me/BotFather',
     linkText: 'Open BotFather',
+    chatTip: 'Search for your bot username in Telegram and send a message!',
+    getBotLink: (token: string) => {
+      // Telegram bot tokens start with the bot ID
+      const botId = token.split(':')[0]
+      return botId ? `https://t.me/bot${botId}` : null
+    },
   },
   {
     id: 'discord',
@@ -77,6 +83,8 @@ const PLATFORMS = [
     guide: 'Discord Developer Portal → New Application → Bot → Reset Token',
     link: 'https://discord.com/developers/applications',
     linkText: 'Open Developer Portal',
+    chatTip: 'Invite your bot to a server and mention it with @BotName',
+    getBotLink: () => null,
   },
   {
     id: 'slack',
@@ -86,6 +94,8 @@ const PLATFORMS = [
     guide: 'Slack API → Create App → OAuth & Permissions → Bot Token',
     link: 'https://api.slack.com/apps',
     linkText: 'Open Slack API',
+    chatTip: 'Install the app to your workspace and DM the bot',
+    getBotLink: () => null,
   },
   {
     id: 'whatsapp',
@@ -95,6 +105,8 @@ const PLATFORMS = [
     guide: 'Meta Business Suite → WhatsApp → API Setup → Access Token',
     link: 'https://business.facebook.com/settings/whatsapp-business-accounts',
     linkText: 'Open Meta Business',
+    chatTip: 'Send a message to your WhatsApp Business number',
+    getBotLink: () => null,
   },
 ] as const
 
@@ -513,23 +525,32 @@ export function Dashboard() {
                     {connections.map((conn) => {
                       const platform = PLATFORMS.find(p => p.id === conn.platform)
                       return (
-                        <div key={conn._id} className="connected-item" style={styles.connectedItem}>
-                          <div style={styles.connectedPlatformInfo}>
-                            <img src={platform?.icon} alt={platform?.name} style={styles.connectedIcon} />
-                            <span style={styles.connectedPlatform}>{platform?.name}</span>
-                            {vmRunning && (
-                              <span style={styles.onlineIndicator}>
-                                <span style={styles.onlineDot} />
-                                Online
-                              </span>
-                            )}
+                        <div key={conn._id} className="connected-item" style={styles.connectedItemExpanded}>
+                          <div style={styles.connectedItemHeader}>
+                            <div style={styles.connectedPlatformInfo}>
+                              <img src={platform?.icon} alt={platform?.name} style={styles.connectedIcon} />
+                              <span style={styles.connectedPlatform}>{platform?.name}</span>
+                              {vmRunning && (
+                                <span style={styles.onlineIndicator}>
+                                  <span style={styles.onlineDot} />
+                                  Online
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              style={styles.removeBtn}
+                              onClick={() => handleRemoveChannel(conn._id)}
+                              title="Remove channel"
+                            >
+                              ×
+                            </button>
                           </div>
-                          <button
-                            style={styles.removeBtn}
-                            onClick={() => handleRemoveChannel(conn._id)}
-                          >
-                            ×
-                          </button>
+                          {vmRunning && platform && (
+                            <div style={styles.chatTipBox}>
+                              <span style={styles.chatTipIcon}>💬</span>
+                              <span style={styles.chatTipText}>{platform.chatTip}</span>
+                            </div>
+                          )}
                         </div>
                       )
                     })}
@@ -697,8 +718,8 @@ export function Dashboard() {
                     <div style={styles.botStatusLeft}>
                       <span style={styles.botStatusIcon}>🤖</span>
                       <div>
-                        <h3 style={styles.botStatusTitle}>Your Clawdbot is Running</h3>
-                        <p style={styles.botStatusSubtitle}>Auto-configured with your API key and channels</p>
+                        <h3 style={styles.botStatusTitle}>Your Clawdbot is Running!</h3>
+                        <p style={styles.botStatusSubtitle}>Ready to chat on {connections?.length || 0} channel{(connections?.length || 0) !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
                     <div style={styles.botStatusBadge}>
@@ -706,14 +727,47 @@ export function Dashboard() {
                       Active
                     </div>
                   </div>
+                  
+                  {/* Quick Actions */}
+                  <div style={styles.quickActionsGrid}>
+                    {connections?.map((conn) => {
+                      const platform = PLATFORMS.find(p => p.id === conn.platform)
+                      if (!platform) return null
+                      
+                      const actionLinks: Record<string, { url: string; text: string }> = {
+                        telegram: { url: 'https://t.me/', text: 'Open Telegram' },
+                        discord: { url: 'https://discord.com/app', text: 'Open Discord' },
+                        slack: { url: 'https://slack.com/', text: 'Open Slack' },
+                        whatsapp: { url: 'https://web.whatsapp.com/', text: 'Open WhatsApp' },
+                      }
+                      
+                      const action = actionLinks[conn.platform]
+                      if (!action) return null
+                      
+                      return (
+                        <a
+                          key={conn._id}
+                          href={action.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={styles.quickActionBtn}
+                        >
+                          <img src={platform.icon} alt={platform.name} style={{ width: 20, height: 20 }} />
+                          <span>{action.text}</span>
+                          <span style={styles.quickActionArrow}>→</span>
+                        </a>
+                      )
+                    })}
+                  </div>
+                  
                   <div style={styles.botStatusInfo}>
                     <div style={styles.infoItem}>
-                      <span style={styles.infoLabel}>What's happening:</span>
-                      <span style={styles.infoValue}>Clawdbot is listening for messages on your connected channels</span>
+                      <span style={styles.infoLabel}>Next step:</span>
+                      <span style={styles.infoValue}>Open your messaging app and send a message to your bot. Try "Hello!" or ask it anything.</span>
                     </div>
                     <div style={styles.infoItem}>
-                      <span style={styles.infoLabel}>Tip:</span>
-                      <span style={styles.infoValue}>Send a message to your bot on Telegram/Discord to test it!</span>
+                      <span style={styles.infoLabel}>Pro tip:</span>
+                      <span style={styles.infoValue}>Your bot uses Claude Opus - it can help with coding, research, writing, and more!</span>
                     </div>
                   </div>
                 </div>
@@ -1121,6 +1175,37 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     borderRadius: 8,
     marginBottom: 8,
   },
+  connectedItemExpanded: {
+    padding: '12px',
+    background: c.bgAlt,
+    borderRadius: 10,
+    marginBottom: 10,
+    border: `1px solid ${c.border}`,
+  },
+  connectedItemHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chatTipBox: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginTop: 10,
+    padding: '10px 12px',
+    background: c.successBg,
+    borderRadius: 8,
+    border: `1px solid ${c.green}22`,
+  },
+  chatTipIcon: {
+    fontSize: 16,
+    flexShrink: 0,
+  },
+  chatTipText: {
+    fontSize: 13,
+    color: c.green,
+    lineHeight: 1.4,
+  },
   connectedPlatform: {
     fontSize: 14,
     fontWeight: 500,
@@ -1372,6 +1457,30 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     borderRadius: '50%',
     background: c.green,
     animation: 'pulse 2s infinite',
+  },
+  quickActionsGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 16,
+  },
+  quickActionBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '10px 16px',
+    background: c.accent,
+    color: '#fff',
+    borderRadius: 10,
+    fontSize: 14,
+    fontWeight: 600,
+    textDecoration: 'none',
+    transition: 'transform 0.2s, background 0.2s',
+    cursor: 'pointer',
+  },
+  quickActionArrow: {
+    opacity: 0.7,
+    marginLeft: 4,
   },
   botStatusInfo: {
     display: 'flex',

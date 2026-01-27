@@ -172,8 +172,8 @@ export const provision = action({
               image: botImage,
               guest: {
                 cpu_kind: "shared",
-                cpus: 1,
-                memory_mb: 1024,
+                cpus: 2,
+                memory_mb: 2048,
               },
               env: envVars,
               services: [
@@ -461,8 +461,8 @@ export const provisionInternal = internalAction({
               image: botImage,
               guest: {
                 cpu_kind: "shared",
-                cpus: 1,
-                memory_mb: 1024,
+                cpus: 2,
+                memory_mb: 2048,
               },
               env: envVars,
               services: [

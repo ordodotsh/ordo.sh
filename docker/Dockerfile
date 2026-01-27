@@ -32,19 +32,11 @@ RUN apk add --no-cache \
     py3-pip \
     py3-numpy
 
-# Install build dependencies for Python packages
-RUN apk add --no-cache --virtual .build-deps \
-    gcc \
-    musl-dev \
-    python3-dev \
-    libffi-dev \
-    openssl-dev
-
 # Install npm packages
 RUN npm install -g clawdbot@latest playwright
 
-# Install Python packages (requires build deps for cryptg)
-RUN pip3 install --break-system-packages telethon cryptg websockify
+# Install Python packages
+RUN pip3 install --break-system-packages telethon websockify
 
 # Install Playwright browsers
 RUN npx playwright install chromium
@@ -52,9 +44,6 @@ RUN npx playwright install chromium
 # Install noVNC from source
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /usr/share/novnc \
     && ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
-
-# Clean up build dependencies
-RUN apk del .build-deps
 
 # Create dev user
 RUN adduser -D -s /bin/bash dev && \

@@ -108,6 +108,14 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
 
   # Start clawdbot gateway in the background if API key is set and channels configured
   if [ -n "$ANTHROPIC_API_KEY" ] && [ "$channel_count" -gt 0 ]; then
+    # Run doctor --fix to enable configured channels
+    ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
+    TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
+    DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \
+    SLACK_BOT_TOKEN="$SLACK_BOT_TOKEN" \
+    WHATSAPP_BOT_TOKEN="$WHATSAPP_BOT_TOKEN" \
+    clawdbot doctor --fix 2>/dev/null || true
+
     # Start the gateway with env vars explicitly passed
     ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
     TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \

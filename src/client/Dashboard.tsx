@@ -790,9 +790,27 @@ export function Dashboard() {
                     />
                   </div>
                   <div style={styles.terminalFooter}>
-                    <span style={styles.terminalFooterText}>
-                      Commands: <code style={styles.codeSnippet}>ordo status</code> · <code style={styles.codeSnippet}>ordo doctor</code> · <code style={styles.codeSnippet}>ordo --help</code> · <code style={styles.codeSnippet}>tail -f ~/.clawdbot/clawdbot.log</code>
-                    </span>
+                    <span style={styles.terminalFooterLabel}>Commands:</span>
+                    <div style={styles.terminalCommands}>
+                      {[
+                        { cmd: 'ordo status', label: 'ordo status' },
+                        { cmd: 'ordo doctor', label: 'ordo doctor' },
+                        { cmd: 'ordo --help', label: 'ordo --help' },
+                        { cmd: 'tail -f ~/.clawdbot/clawdbot.log', label: 'tail -f ~/.clawdbot/clawdbot.log' },
+                      ].map((item) => (
+                        <button
+                          key={item.cmd}
+                          style={styles.terminalCmdBtn}
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.cmd)
+                            toast.success('Copied to clipboard', { description: item.cmd })
+                          }}
+                          title={`Copy: ${item.cmd}`}
+                        >
+                          <code style={styles.terminalCmdCode}>{item.label}</code>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1544,10 +1562,37 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     padding: '12px 20px',
     borderTop: `1px solid ${c.border}`,
     background: c.bgAlt,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
   },
-  terminalFooterText: {
+  terminalFooterLabel: {
     fontSize: 12,
     color: c.textMuted,
+    fontWeight: 500,
+  },
+  terminalCommands: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  terminalCmdBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '6px 10px',
+    background: c.cardBg,
+    border: `1px solid ${c.border}`,
+    borderRadius: 6,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  terminalCmdCode: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    color: c.accent,
   },
   codeSnippet: {
     fontFamily: 'monospace',

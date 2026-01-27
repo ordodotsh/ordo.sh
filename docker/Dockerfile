@@ -78,3 +78,4 @@ EXPOSE 7681 6080
 
 # Start with auto-config script
 CMD ["/usr/local/bin/startup.sh"]
+# Rebuilt 2026-01-27T22:05:42Z

@@ -28,15 +28,9 @@ RUN apk add --no-cache \
     # Media processing
     ffmpeg \
     imagemagick \
-    # Desktop environment
-    xfce4 \
-    xfce4-terminal \
+    # Virtual display for headless browser
+    xvfb \
     dbus \
-    dbus-x11 \
-    xvfb-run \
-    xorg-server \
-    xrdb \
-    x11vnc \
     # Python
     python3 \
     py3-pip \
@@ -76,14 +70,7 @@ RUN npm install -g pnpm clawdbot@latest playwright \
     @railway/cli
 
 # Install Python packages
-RUN pip3 install --break-system-packages telethon websockify
-
-# Skip Playwright browser download during build (will use system Chromium)
-# Playwright browsers would need to be installed as the dev user anyway
-
-# Install noVNC from source
-RUN git clone --depth 1 https://github.com/novnc/noVNC.git /usr/share/novnc \
-    && ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
+RUN pip3 install --break-system-packages telethon
 
 # Create dev user and workspace
 RUN adduser -D -s /bin/bash dev && \
@@ -150,8 +137,8 @@ ENV GIT_AUTHOR_EMAIL=""
 ENV GIT_COMMITTER_NAME=""
 ENV GIT_COMMITTER_EMAIL=""
 
-# Expose ports: 7681 = terminal, 6080 = noVNC desktop, 18789 = moltbot gateway
-EXPOSE 7681 6080 18789
+# Expose ports: 7681 = terminal, 18789 = moltbot gateway
+EXPOSE 7681 18789
 
 # Start with auto-config script
 CMD ["/usr/local/bin/startup.sh"]

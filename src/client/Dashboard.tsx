@@ -3,8 +3,10 @@ import { useQuery, useAction, useMutation } from 'convex/react'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState, useMemo } from 'react'
 import { toast } from 'sonner'
+import Lottie from 'lottie-react'
 import { api } from '../../convex/_generated/api'
 import { usePayment } from './usePayment'
+import catPlayingAnimation from '../assets/cat_playing.json'
 
 const lightColors = {
   bg: '#FAF9F7',
@@ -748,8 +750,15 @@ export function Dashboard() {
                   </div>
                 ) : dashboard?.vm?.status === 'provisioning' ? (
                   <div style={styles.provisioningState}>
-                    <div style={styles.spinner} />
-                    <span>Setting up your instance...</span>
+                    <Lottie 
+                      animationData={catPlayingAnimation} 
+                      loop={true}
+                      style={{ width: 120, height: 120 }}
+                    />
+                    <div style={styles.provisioningText}>
+                      <span style={styles.provisioningTitle}>Setting up your Ordo...</span>
+                      <span style={styles.provisioningSubtitle}>This usually takes 30-60 seconds</span>
+                    </div>
                   </div>
                 ) : (
                   <div>
@@ -849,15 +858,7 @@ export function Dashboard() {
                     rel="noopener noreferrer"
                     style={styles.accessBtn}
                   >
-                    <span>🖥️</span> Terminal
-                  </a>
-                  <a
-                    href={`${dashboard.vm.ip.replace('https://', 'http://').split('.fly.dev')[0]}.fly.dev:6080/vnc.html`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ ...styles.accessBtn, background: currentColors.purple }}
-                  >
-                    <span>🖱️</span> Desktop (GUI)
+                    <span>🖥️</span> Open Terminal in New Tab
                   </a>
                 </div>
 
@@ -879,26 +880,31 @@ export function Dashboard() {
                     />
                   </div>
                   <div style={styles.terminalFooter}>
-                    <span style={styles.terminalFooterLabel}>Commands:</span>
-                    <div style={styles.terminalCommands}>
-                      {[
-                        { cmd: 'ordo status', label: 'ordo status' },
-                        { cmd: 'ordo doctor', label: 'ordo doctor' },
-                        { cmd: 'ordo --help', label: 'ordo --help' },
-                        { cmd: 'tail -f ~/.clawdbot/clawdbot.log', label: 'tail -f ~/.clawdbot/clawdbot.log' },
-                      ].map((item) => (
-                        <button
-                          key={item.cmd}
-                          style={styles.terminalCmdBtn}
-                          onClick={() => {
-                            navigator.clipboard.writeText(item.cmd)
-                            toast.success('Copied to clipboard', { description: item.cmd })
-                          }}
-                          title={`Copy: ${item.cmd}`}
-                        >
-                          <code style={styles.terminalCmdCode}>{item.label}</code>
-                        </button>
-                      ))}
+                    <div style={styles.commandsSection}>
+                      <h4 style={styles.commandsSectionTitle}>Quick Commands (click to copy)</h4>
+                      <div style={styles.commandsGrid}>
+                        {[
+                          { cmd: 'ordo status', label: 'ordo status', desc: 'Check if your bot is running' },
+                          { cmd: 'ordo doctor', label: 'ordo doctor', desc: 'Diagnose and fix issues' },
+                          { cmd: 'ordo --help', label: 'ordo --help', desc: 'See all available commands' },
+                          { cmd: 'tail -f ~/.clawdbot/clawdbot.log', label: 'View logs', desc: 'Watch real-time bot activity' },
+                          { cmd: 'ordo gateway --port 18789 --verbose', label: 'Start gateway', desc: 'Manually start the bot gateway' },
+                          { cmd: 'ordo channels login', label: 'Channel login', desc: 'Setup WhatsApp QR login' },
+                        ].map((item) => (
+                          <button
+                            key={item.cmd}
+                            style={styles.commandCard}
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.cmd)
+                              toast.success('Copied to clipboard', { description: item.cmd })
+                            }}
+                            title={`Copy: ${item.cmd}`}
+                          >
+                            <code style={styles.commandCode}>{item.label}</code>
+                            <span style={styles.commandDesc}>{item.desc}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1501,12 +1507,26 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
   },
   provisioningState: {
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 12,
-    padding: 16,
+    gap: 8,
+    padding: 24,
     background: c.bgAlt,
-    borderRadius: 8,
-    fontSize: 14,
+    borderRadius: 12,
+  },
+  provisioningText: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+  },
+  provisioningTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: c.text,
+  },
+  provisioningSubtitle: {
+    fontSize: 13,
     color: c.textSecondary,
   },
   spinner: {
@@ -1668,13 +1688,47 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     color: c.textMuted,
   },
   terminalFooter: {
-    padding: '12px 20px',
+    padding: '20px',
     borderTop: `1px solid ${c.border}`,
     background: c.bgAlt,
+  },
+  commandsSection: {
+    width: '100%',
+  },
+  commandsSectionTitle: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: c.text,
+    marginBottom: 12,
+    margin: 0,
+  },
+  commandsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: 10,
+  },
+  commandCard: {
     display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
+    padding: '12px 14px',
+    background: c.cardBg,
+    border: `1px solid ${c.border}`,
+    borderRadius: 10,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    textAlign: 'left',
+  },
+  commandCode: {
+    fontFamily: 'monospace',
+    fontSize: 13,
+    fontWeight: 600,
+    color: c.accent,
+  },
+  commandDesc: {
+    fontSize: 12,
+    color: c.textMuted,
   },
   terminalFooterLabel: {
     fontSize: 12,

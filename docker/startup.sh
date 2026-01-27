@@ -163,24 +163,9 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   fi
 fi
 
-# Start virtual display for desktop (ignore errors)
+# Start virtual display for headless browser automation
 Xvfb :1 -screen 0 1920x1080x24 &
-sleep 2
-
-# Start dbus session (needed for XFCE)
-if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
-  eval $(dbus-launch --sh-syntax) 2>/dev/null || true
-fi
-
-# Start XFCE desktop environment (ignore errors)
-DISPLAY=:1 startxfce4 &>/dev/null &
-sleep 2
-
-# Start VNC server (ignore errors)
-x11vnc -display :1 -forever -shared -rfbport 5900 -bg -o /tmp/x11vnc.log 2>/dev/null || true
-
-# Start noVNC (web-based desktop access on port 6080)
-websockify --web=/usr/share/novnc 6080 localhost:5900 &>/dev/null &
+sleep 1
 
 # Start ttyd with bash (terminal access on port 7681)
 # Bind to 0.0.0.0 explicitly for Fly.io

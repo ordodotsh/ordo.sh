@@ -11,6 +11,9 @@ CONFIG_FILE="$CONFIG_DIR/clawdbot.json"
 mkdir -p "$CONFIG_DIR"
 mkdir -p "$HOME/ordo"
 
+# Make .profile source .bashrc (login shells don't read .bashrc by default)
+echo '[ -f ~/.bashrc ] && source ~/.bashrc' >> "$HOME/.profile"
+
 # Create 'ordo' alias and welcome message in .bashrc
 cat >> "$HOME/.bashrc" << 'BASHRC'
 # Ordo.sh configuration

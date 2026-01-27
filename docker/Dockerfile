@@ -29,6 +29,9 @@ USER dev
 ENV SHELL=/bin/bash
 ENV HOME=/home/dev
 
+# Increase Node.js memory limit to prevent heap out of memory errors
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # Environment variables (set at runtime by Ordo.sh)
 ENV USER_WALLET=""
 ENV ORDO_AUTO_CONFIG=""

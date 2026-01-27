@@ -21,21 +21,19 @@ mkdir -p "$HOME/clawd"
 if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   echo "Auto-configuring clawdbot..."
 
-  # Start building the config JSON with proper clawdbot structure
+  # Start building the config JSON with proper clawdbot structure (2026.1.x format)
   config='{
-    "agent": {
-      "model": "anthropic/claude-sonnet-4-20250514"
-    },
     "agents": {
       "defaults": {
-        "workspace": "~/clawd"
+        "workspace": "~/clawd",
+        "model": {
+          "primary": "anthropic/claude-opus-4-20250514"
+        }
       }
     },
     "gateway": {
       "port": 18789,
-      "auth": {
-        "mode": "none"
-      }
+      "mode": "local"
     },
     "channels": {}
   }'
@@ -44,48 +42,40 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   if [ -n "$TELEGRAM_TOKEN" ]; then
     echo "  - Telegram bot configured"
     config=$(echo "$config" | jq --arg token "$TELEGRAM_TOKEN" '.channels.telegram = {
-      "enabled": true,
-      "token": $token,
-      "dm": {
-        "policy": "open"
-      }
+      "enabled": true
     }')
+    # Set telegram token via environment variable (clawdbot reads from env)
+    export TELEGRAM_BOT_TOKEN="$TELEGRAM_TOKEN"
   fi
 
   # Add Discord channel if token provided
   if [ -n "$DISCORD_TOKEN" ]; then
     echo "  - Discord bot configured"
-    config=$(echo "$config" | jq --arg token "$DISCORD_TOKEN" '.channels.discord = {
-      "enabled": true,
-      "token": $token,
-      "dm": {
-        "policy": "open"
-      }
+    config=$(echo "$config" | jq '.channels.discord = {
+      "enabled": true
     }')
+    # Set discord token via environment variable
+    export DISCORD_BOT_TOKEN="$DISCORD_TOKEN"
   fi
 
   # Add Slack channel if token provided
   if [ -n "$SLACK_TOKEN" ]; then
     echo "  - Slack bot configured"
-    config=$(echo "$config" | jq --arg token "$SLACK_TOKEN" '.channels.slack = {
-      "enabled": true,
-      "token": $token,
-      "dm": {
-        "policy": "open"
-      }
+    config=$(echo "$config" | jq '.channels.slack = {
+      "enabled": true
     }')
+    # Set slack token via environment variable
+    export SLACK_BOT_TOKEN="$SLACK_TOKEN"
   fi
 
   # Add WhatsApp channel if token provided
   if [ -n "$WHATSAPP_TOKEN" ]; then
     echo "  - WhatsApp configured"
-    config=$(echo "$config" | jq --arg token "$WHATSAPP_TOKEN" '.channels.whatsapp = {
-      "enabled": true,
-      "token": $token,
-      "dm": {
-        "policy": "open"
-      }
+    config=$(echo "$config" | jq '.channels.whatsapp = {
+      "enabled": true
     }')
+    # Set whatsapp token via environment variable
+    export WHATSAPP_BOT_TOKEN="$WHATSAPP_TOKEN"
   fi
 
   # Check if no API key
@@ -104,6 +94,10 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   # Count configured channels
   channel_count=$(echo "$config" | jq '.channels | length')
 
+  # Generate gateway auth token
+  echo "Generating gateway auth token..."
+  clawdbot config set gateway.auth.mode token 2>/dev/null || true
+  
   # Start clawdbot gateway in the background if API key is set and channels configured
   if [ -n "$ANTHROPIC_API_KEY" ] && [ "$channel_count" -gt 0 ]; then
     echo "Starting clawdbot gateway..."
@@ -113,7 +107,7 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
     # Start the gateway with verbose logging
     nohup clawdbot gateway --port 18789 --verbose > "$HOME/.clawdbot/clawdbot.log" 2>&1 &
     GATEWAY_PID=$!
-    sleep 3
+    sleep 5
 
     if kill -0 $GATEWAY_PID 2>/dev/null; then
       echo ""
@@ -125,6 +119,7 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
       echo "  on your connected channels."
       echo ""
       echo "  View logs: tail -f ~/.clawdbot/clawdbot.log"
+      echo "  Check status: clawdbot status"
       echo ""
     else
       echo ""
@@ -132,7 +127,8 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
       echo "  Check logs: cat ~/.clawdbot/clawdbot.log"
       echo ""
       echo "  To configure manually, run:"
-      echo "    clawdbot onboard --install-daemon"
+      echo "    clawdbot doctor --fix"
+      echo "    clawdbot gateway"
       echo ""
     fi
   else
@@ -144,13 +140,15 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
     fi
     echo ""
     echo "To set up manually, run:"
-    echo "  clawdbot onboard --install-daemon"
+    echo "  clawdbot doctor --fix"
+    echo "  clawdbot gateway"
   fi
 else
   echo "Manual configuration mode."
   echo ""
   echo "To set up your bot, run:"
-  echo "  clawdbot onboard --install-daemon"
+  echo "  clawdbot doctor --fix"
+  echo "  clawdbot gateway"
 fi
 
 echo ""

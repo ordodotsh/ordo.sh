@@ -263,6 +263,39 @@ export const stop = action({
   },
 });
 
+// Internal: Stop VM (called by subscription expiry cron)
+export const stopInternal = internalAction({
+  args: { vmId: v.id("vms") },
+  handler: async (ctx, { vmId }) => {
+    const vm = await ctx.runQuery(internal.vms.get, { vmId });
+    if (!vm || !vm.flyMachineId) {
+      throw new Error("VM not found");
+    }
+
+    const flyToken = process.env.FLY_API_TOKEN;
+    if (!flyToken) {
+      throw new Error("FLY_API_TOKEN not configured");
+    }
+
+    await fetch(
+      `https://api.machines.dev/v1/apps/${vm.flyAppName}/machines/${vm.flyMachineId}/stop`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${flyToken}`,
+        },
+      }
+    );
+
+    await ctx.runMutation(internal.vms.updateStatus, {
+      vmId,
+      status: "stopped",
+    });
+
+    return { success: true };
+  },
+});
+
 // Internal query to get VM by ID
 export const get = internalQuery({
   args: { vmId: v.id("vms") },

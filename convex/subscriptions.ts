@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { api } from "./_generated/api";
+import { mutation, query, internalAction, internalMutation, internalQuery } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 
 // Get user's active subscription
 export const getActive = query({
@@ -160,5 +160,65 @@ export const create = mutation({
     }
 
     return subId;
+  },
+});
+
+// Internal: Find and stop VMs for expired subscriptions
+export const stopExpiredVMs = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    // Get all expired subscriptions that are still marked as active
+    const expiredSubs = await ctx.runQuery(internal.subscriptions.getExpiredActive);
+
+    for (const sub of expiredSubs) {
+      // Find user's VM
+      const vm = await ctx.runQuery(internal.vms.getByUserId, { userId: sub.userId });
+
+      if (vm && vm.status === "running") {
+        try {
+          // Stop the VM on Fly.io
+          await ctx.runAction(internal.vms.stopInternal, { vmId: vm._id });
+          console.log(`Stopped VM for expired subscription: ${sub._id}`);
+        } catch (err) {
+          console.error(`Failed to stop VM for subscription ${sub._id}:`, err);
+        }
+      }
+
+      // Mark subscription as expired
+      await ctx.runMutation(internal.subscriptions.markExpired, {
+        subscriptionId: sub._id,
+      });
+    }
+
+    return { stopped: expiredSubs.length };
+  },
+});
+
+// Internal query: Get active subscriptions that have expired
+export const getExpiredActive = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const subs = await ctx.db
+      .query("subscriptions")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("status"), "active"),
+          q.lt(q.field("expiresAt"), now)
+        )
+      )
+      .collect();
+
+    return subs;
+  },
+});
+
+// Internal mutation: Mark subscription as expired
+export const markExpired = internalMutation({
+  args: { subscriptionId: v.id("subscriptions") },
+  handler: async (ctx, { subscriptionId }) => {
+    await ctx.db.patch(subscriptionId, {
+      status: "expired",
+    });
   },
 });

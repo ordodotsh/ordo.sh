@@ -571,6 +571,83 @@ export function Dashboard() {
               )}
             </div>
           </div>
+
+          {/* FAQ Section */}
+          <div style={styles.faqSection}>
+            <h2 style={styles.faqTitle}>Frequently Asked Questions</h2>
+            <div style={styles.faqGrid}>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>What is Ordo.sh?</h4>
+                <p style={styles.faqAnswer}>
+                  Ordo.sh gives you a dedicated cloud server running clawdbot - an AI assistant
+                  that connects to Telegram, Discord, Slack, and WhatsApp. Think of it as having
+                  your own AI assistant available 24/7 on all your messaging platforms.
+                </p>
+              </div>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>Do I need my own Anthropic API key?</h4>
+                <p style={styles.faqAnswer}>
+                  Yes. You bring your own API key from{' '}
+                  <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
+                    console.anthropic.com
+                  </a>.
+                  This means you pay Anthropic directly for AI usage - we only charge for the
+                  cloud infrastructure.
+                </p>
+              </div>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>How do I get a Telegram bot token?</h4>
+                <p style={styles.faqAnswer}>
+                  Message{' '}
+                  <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
+                    @BotFather
+                  </a>{' '}
+                  on Telegram, send /newbot, follow the prompts to name your bot,
+                  and copy the token it gives you.
+                </p>
+              </div>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>How do I get a Discord bot token?</h4>
+                <p style={styles.faqAnswer}>
+                  Go to the{' '}
+                  <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
+                    Discord Developer Portal
+                  </a>,
+                  create a new application, go to Bot settings, and click "Reset Token" to get your token.
+                  Don't forget to invite the bot to your server.
+                </p>
+              </div>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>What happens when my subscription expires?</h4>
+                <p style={styles.faqAnswer}>
+                  Your VM will be automatically stopped when your subscription expires.
+                  Your configuration and data are preserved - just renew to restart your bot.
+                </p>
+              </div>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>Can I add multiple channels?</h4>
+                <p style={styles.faqAnswer}>
+                  Yes! You can connect Telegram, Discord, Slack, and WhatsApp all at once.
+                  Your AI assistant will respond on all connected platforms.
+                </p>
+              </div>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>What is the terminal for?</h4>
+                <p style={styles.faqAnswer}>
+                  The terminal gives you direct access to your cloud server for advanced
+                  configuration. Most users won't need it - everything can be configured
+                  through the dashboard.
+                </p>
+              </div>
+              <div style={styles.faqItem}>
+                <h4 style={styles.faqQuestion}>Is my data private?</h4>
+                <p style={styles.faqAnswer}>
+                  Yes. You have your own dedicated server. Your API keys, bot tokens, and
+                  conversation data stay on your instance - we don't have access to them.
+                </p>
+              </div>
+            </div>
+          </div>
         </main>
       </div>
     </div>
@@ -1086,6 +1163,47 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.green,
     fontWeight: 600,
     flexShrink: 0,
+  },
+  faqSection: {
+    marginTop: 48,
+    paddingTop: 48,
+    borderTop: `1px solid ${colors.border}`,
+  },
+  faqTitle: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: colors.text,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  faqGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: 20,
+  },
+  faqItem: {
+    padding: 20,
+    background: colors.cardBg,
+    border: `1px solid ${colors.border}`,
+    borderRadius: 12,
+  },
+  faqQuestion: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: colors.text,
+    marginBottom: 8,
+    margin: 0,
+  },
+  faqAnswer: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 1.6,
+    margin: 0,
+    marginTop: 8,
+  },
+  faqLink: {
+    color: colors.accent,
+    textDecoration: 'none',
   },
 }
 

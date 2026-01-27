@@ -1,6 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, httpAction } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { query, mutation } from "./_generated/server";
 
 // Get a setting by key
 export const get = query({

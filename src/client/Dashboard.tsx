@@ -566,7 +566,7 @@ export function Dashboard() {
                 {/* Connected Channels */}
                 {connections && connections.length > 0 && (
                   <div style={styles.connectedList}>
-                    {connections.map((conn) => {
+                    {connections.map((conn: { _id: string; platform: string; status: string; hasToken: boolean; tokenPreview: string | null; connectedAt: number }) => {
                       const platform = PLATFORMS.find(p => p.id === conn.platform)
                       return (
                         <div key={conn._id} className="connected-item" style={styles.connectedItemExpanded}>
@@ -677,7 +677,7 @@ export function Dashboard() {
                 ) : (
                   <div className="platform-grid" style={styles.platformGrid}>
                     {PLATFORMS.map((platform) => {
-                      const isConnected = connections?.some(c => c.platform === platform.id)
+                      const isConnected = connections?.some((c: { platform: string }) => c.platform === platform.id)
                       return (
                         <button
                           key={platform.id}
@@ -799,7 +799,7 @@ export function Dashboard() {
                   
                   {/* Quick Actions */}
                   <div style={styles.quickActionsGrid}>
-                    {connections?.map((conn) => {
+                    {connections?.map((conn: { _id: string; platform: string }) => {
                       const platform = PLATFORMS.find(p => p.id === conn.platform)
                       if (!platform) return null
                       

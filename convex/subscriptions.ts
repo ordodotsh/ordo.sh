@@ -166,9 +166,9 @@ export const create = mutation({
 // Internal: Find and stop VMs for expired subscriptions
 export const stopExpiredVMs = internalAction({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ stopped: number }> => {
     // Get all expired subscriptions that are still marked as active
-    const expiredSubs = await ctx.runQuery(internal.subscriptions.getExpiredActive);
+    const expiredSubs: Awaited<ReturnType<typeof ctx.runQuery<typeof internal.subscriptions.getExpiredActive>>> = await ctx.runQuery(internal.subscriptions.getExpiredActive);
 
     for (const sub of expiredSubs) {
       // Find user's VM

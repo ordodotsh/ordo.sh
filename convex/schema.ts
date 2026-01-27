@@ -55,9 +55,11 @@ export default defineSchema({
     userId: v.id("users"),
     platform: v.union(
       v.literal("telegram"),
+      v.literal("telegram_user"),
       v.literal("discord"),
       v.literal("slack"),
-      v.literal("whatsapp")
+      v.literal("whatsapp"),
+      v.literal("email")
     ),
     token: v.optional(v.string()), // Bot token for the platform
     config: v.optional(v.any()),   // Additional platform-specific config

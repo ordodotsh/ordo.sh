@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, action, internalMutation, internalQuery, internalAction } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
 // Get user's VM
@@ -154,7 +154,7 @@ export const provision = action({
       }
 
       // 3. Create Machine with bot image
-      const botImage = process.env.BOT_IMAGE;
+      const botImage = await ctx.runQuery(api.settings.getBotImage, {});
       if (!botImage) {
         throw new Error("BOT_IMAGE not configured");
       }
@@ -443,7 +443,7 @@ export const provisionInternal = internalAction({
         throw new Error(`Failed to allocate IP: ${error}`);
       }
 
-      const botImage = process.env.BOT_IMAGE;
+      const botImage = await ctx.runQuery(api.settings.getBotImage, {});
       if (!botImage) {
         throw new Error("BOT_IMAGE not configured");
       }

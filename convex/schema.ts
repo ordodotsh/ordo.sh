@@ -70,4 +70,11 @@ export default defineSchema({
     xHandle: v.string(),
     createdAt: v.number(),
   }).index("by_handle", ["xHandle"]),
+
+  // Settings - system configuration
+  settings: defineTable({
+    key: v.string(),
+    value: v.string(),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
 });

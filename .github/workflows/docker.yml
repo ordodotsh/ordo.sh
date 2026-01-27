@@ -49,3 +49,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Update Convex with new image
+        run: |
+          curl -X POST "${{ secrets.CONVEX_HTTP_URL }}/api/update-bot-image" \
+            -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"sha": "${{ github.sha }}"}'

@@ -25,12 +25,8 @@ RUN apk add --no-cache \
     # Voice message support
     ffmpeg \
     # Desktop environment for full GUI access (Alpine package names)
-    xfce4-session \
-    xfce4-panel \
-    xfce4-settings \
+    xfce4 \
     xfce4-terminal \
-    xfdesktop \
-    thunar \
     dbus \
     # X11 virtual framebuffer
     xvfb-run \
@@ -41,12 +37,21 @@ RUN apk add --no-cache \
     python3 \
     py3-pip \
     py3-numpy \
+    # Build dependencies for Python packages (cryptg) - temporary
+    && apk add --no-cache --virtual .build-deps \
+    gcc \
+    musl-dev \
+    python3-dev \
+    libffi-dev \
+    openssl-dev \
     && npm install -g clawdbot@latest playwright \
     && pip3 install --break-system-packages telethon cryptg websockify \
     && npx playwright install chromium \
     # Install noVNC from source
     && git clone --depth 1 https://github.com/novnc/noVNC.git /usr/share/novnc \
-    && ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
+    && ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html \
+    # Clean up build dependencies to reduce image size
+    && apk del .build-deps
 
 # Create dev user
 RUN adduser -D -s /bin/bash dev && \

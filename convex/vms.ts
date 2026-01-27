@@ -207,11 +207,11 @@ export const provision = action({
                   internal_port: 7681,
                 },
                 {
-                  // Desktop access (noVNC)
+                  // Desktop access (noVNC) - no TLS at edge, websockify handles plain HTTP/WS
                   ports: [
                     {
                       port: 6080,
-                      handlers: ["tls", "http"],
+                      handlers: ["http"],
                     },
                   ],
                   protocol: "tcp",
@@ -522,11 +522,11 @@ export const provisionInternal = internalAction({
                   internal_port: 7681,
                 },
                 {
-                  // Desktop access (noVNC)
+                  // Desktop access (noVNC) - no TLS at edge, websockify handles plain HTTP/WS
                   ports: [
                     {
                       port: 6080,
-                      handlers: ["tls", "http"],
+                      handlers: ["http"],
                     },
                   ],
                   protocol: "tcp",

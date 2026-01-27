@@ -852,7 +852,7 @@ export function Dashboard() {
                     <span>🖥️</span> Terminal
                   </a>
                   <a
-                    href={`${dashboard.vm.ip.replace('https://', 'https://').split('.fly.dev')[0]}.fly.dev:6080/vnc.html`}
+                    href={`${dashboard.vm.ip.replace('https://', 'http://').split('.fly.dev')[0]}.fly.dev:6080/vnc.html`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ ...styles.accessBtn, background: currentColors.purple }}

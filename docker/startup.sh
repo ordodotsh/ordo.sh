@@ -99,20 +99,22 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   # Generate gateway auth token (silent)
   clawdbot config set gateway.auth.mode token 2>/dev/null || true
   
+  # Save env vars FIRST (before starting gateway)
+  echo "export ANTHROPIC_API_KEY='$ANTHROPIC_API_KEY'" >> "$HOME/.bashrc"
+  [ -n "$TELEGRAM_BOT_TOKEN" ] && echo "export TELEGRAM_BOT_TOKEN='$TELEGRAM_BOT_TOKEN'" >> "$HOME/.bashrc"
+  [ -n "$DISCORD_BOT_TOKEN" ] && echo "export DISCORD_BOT_TOKEN='$DISCORD_BOT_TOKEN'" >> "$HOME/.bashrc"
+  [ -n "$SLACK_BOT_TOKEN" ] && echo "export SLACK_BOT_TOKEN='$SLACK_BOT_TOKEN'" >> "$HOME/.bashrc"
+  [ -n "$WHATSAPP_BOT_TOKEN" ] && echo "export WHATSAPP_BOT_TOKEN='$WHATSAPP_BOT_TOKEN'" >> "$HOME/.bashrc"
+
   # Start clawdbot gateway in the background if API key is set and channels configured
   if [ -n "$ANTHROPIC_API_KEY" ] && [ "$channel_count" -gt 0 ]; then
-    # Export the API key so clawdbot can use it
-    export ANTHROPIC_API_KEY
-
-    # Start the gateway (output to log file)
+    # Start the gateway with env vars explicitly passed
+    ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
+    TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
+    DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \
+    SLACK_BOT_TOKEN="$SLACK_BOT_TOKEN" \
+    WHATSAPP_BOT_TOKEN="$WHATSAPP_BOT_TOKEN" \
     nohup clawdbot gateway --port 18789 --verbose > "$HOME/.clawdbot/clawdbot.log" 2>&1 &
-    
-    # Save env vars for future shell sessions
-    echo "export ANTHROPIC_API_KEY='$ANTHROPIC_API_KEY'" >> "$HOME/.bashrc"
-    [ -n "$TELEGRAM_BOT_TOKEN" ] && echo "export TELEGRAM_BOT_TOKEN='$TELEGRAM_BOT_TOKEN'" >> "$HOME/.bashrc"
-    [ -n "$DISCORD_BOT_TOKEN" ] && echo "export DISCORD_BOT_TOKEN='$DISCORD_BOT_TOKEN'" >> "$HOME/.bashrc"
-    [ -n "$SLACK_BOT_TOKEN" ] && echo "export SLACK_BOT_TOKEN='$SLACK_BOT_TOKEN'" >> "$HOME/.bashrc"
-    [ -n "$WHATSAPP_BOT_TOKEN" ] && echo "export WHATSAPP_BOT_TOKEN='$WHATSAPP_BOT_TOKEN'" >> "$HOME/.bashrc"
   fi
 fi
 

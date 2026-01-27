@@ -92,7 +92,7 @@ export function App() {
           <p style={styles.motto}>ab chao, ordo</p>
 
           <p style={styles.subheadline} className="subheadline">
-            Like having a Mac mini running Clawdbot 24/7 —<br />
+            Like having a Mac mini running an AI assistant 24/7 —<br />
             but we handle the hosting. Just connect and chat.
           </p>
 

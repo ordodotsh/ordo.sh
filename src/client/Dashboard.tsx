@@ -300,7 +300,7 @@ export function Dashboard() {
     try {
       await provisionVm({ userId: dashboard.user._id, wallet: walletAddress })
       toast.success('Instance launching', {
-        description: 'Your clawdbot is being configured',
+        description: 'Your Ordo is being configured',
       })
     } catch (err) {
       toast.error('Failed to provision', {
@@ -372,7 +372,7 @@ export function Dashboard() {
           <div className="hero-section" style={styles.hero}>
             <h1 className="hero-title" style={styles.title}>Your AI Assistant, Everywhere</h1>
             <p className="hero-subtitle" style={styles.subtitle}>
-              Connect clawdbot to Telegram, Discord, Slack, and WhatsApp in minutes.
+              Connect your AI assistant to Telegram, Discord, Slack, and WhatsApp in minutes.
               No servers to manage. No code to write.
             </p>
           </div>
@@ -646,7 +646,7 @@ export function Dashboard() {
                 {!hasVm ? (
                   <div>
                     <p style={styles.cardDesc}>
-                      Your clawdbot will be configured automatically with your API key and channels.
+                      Your Ordo will be configured automatically with your API key and channels.
                     </p>
                     <button
                       style={{
@@ -656,7 +656,7 @@ export function Dashboard() {
                       onClick={handleProvision}
                       disabled={provisioning}
                     >
-                      {provisioning ? 'Launching...' : '🚀 Launch Clawdbot'}
+                      {provisioning ? 'Launching...' : '🚀 Launch Ordo'}
                     </button>
                   </div>
                 ) : vmFailed ? (
@@ -718,7 +718,7 @@ export function Dashboard() {
                     <div style={styles.botStatusLeft}>
                       <span style={styles.botStatusIcon}>🤖</span>
                       <div>
-                        <h3 style={styles.botStatusTitle}>Your Clawdbot is Running!</h3>
+                        <h3 style={styles.botStatusTitle}>Your Ordo is Running!</h3>
                         <p style={styles.botStatusSubtitle}>Ready to chat on {connections?.length || 0} channel{(connections?.length || 0) !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
@@ -785,13 +785,13 @@ export function Dashboard() {
                     <iframe
                       src={dashboard.vm.ip}
                       style={styles.terminalIframe}
-                      title="Clawdbot Terminal"
+                      title="Ordo Terminal"
                       allow="clipboard-read; clipboard-write"
                     />
                   </div>
                   <div style={styles.terminalFooter}>
                     <span style={styles.terminalFooterText}>
-                      Useful commands: <code style={styles.codeSnippet}>tail -f ~/.clawdbot/clawdbot.log</code> (view logs) · <code style={styles.codeSnippet}>clawdbot --help</code> (all commands)
+                      Commands: <code style={styles.codeSnippet}>ordo status</code> · <code style={styles.codeSnippet}>ordo doctor</code> · <code style={styles.codeSnippet}>ordo --help</code> · <code style={styles.codeSnippet}>tail -f ~/.clawdbot/clawdbot.log</code>
                     </span>
                   </div>
                 </div>
@@ -821,7 +821,7 @@ export function Dashboard() {
                   <div style={styles.faqItem}>
                     <h4 style={styles.faqQuestion}>What is Ordo.sh?</h4>
                     <p style={styles.faqAnswer}>
-                      Ordo.sh gives you a dedicated cloud server running clawdbot - an AI assistant
+                      Ordo gives you a dedicated cloud server running an AI assistant
                       that connects to Telegram, Discord, Slack, and WhatsApp. Think of it as having
                       your own AI assistant available 24/7 on all your messaging platforms.
                     </p>

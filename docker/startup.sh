@@ -7,15 +7,24 @@ set -e
 CONFIG_DIR="$HOME/.clawdbot"
 CONFIG_FILE="$CONFIG_DIR/clawdbot.json"
 
-echo "========================================"
-echo "  Welcome to Ordo.sh"
-echo "  Your AI Assistant Platform"
+# Create 'ordo' alias for clawdbot
+echo 'alias ordo="clawdbot"' >> "$HOME/.bashrc"
+echo 'alias ordo="clawdbot"' >> "$HOME/.profile"
+
+echo ""
+echo "  ░█▀█░█▀▄░█▀▄░█▀█"
+echo "  ░█░█░█▀▄░█░█░█░█"
+echo "  ░▀▀▀░▀░▀░▀▀░░▀▀▀"
+echo ""
+echo "  Welcome to Ordo"
+echo "  Your AI Assistant in the Cloud"
+echo ""
 echo "========================================"
 echo ""
 
 # Create config directory and workspace
 mkdir -p "$CONFIG_DIR"
-mkdir -p "$HOME/clawd"
+mkdir -p "$HOME/ordo"
 
 # Check if we should auto-configure
 if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
@@ -25,7 +34,7 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   config='{
     "agents": {
       "defaults": {
-        "workspace": "~/clawd",
+        "workspace": "~/ordo",
         "model": {
           "primary": "anthropic/claude-opus-4-20250514"
         }
@@ -112,23 +121,27 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
     if kill -0 $GATEWAY_PID 2>/dev/null; then
       echo ""
       echo "========================================"
-      echo "  Clawdbot is running!"
+      echo "  ✓ Ordo is running!"
       echo "========================================"
       echo ""
-      echo "  Your bot is now listening for messages"
-      echo "  on your connected channels."
+      echo "  Your AI assistant is now listening"
+      echo "  for messages on your channels."
       echo ""
-      echo "  View logs: tail -f ~/.clawdbot/clawdbot.log"
-      echo "  Check status: clawdbot status"
+      echo "  Commands:"
+      echo "    ordo status    - Check status"
+      echo "    ordo doctor    - Diagnose issues"
+      echo "    ordo --help    - All commands"
+      echo ""
+      echo "  Logs: tail -f ~/.clawdbot/clawdbot.log"
       echo ""
     else
       echo ""
-      echo "! Gateway may have failed to start."
+      echo "! Ordo may have failed to start."
       echo "  Check logs: cat ~/.clawdbot/clawdbot.log"
       echo ""
-      echo "  To configure manually, run:"
-      echo "    clawdbot doctor --fix"
-      echo "    clawdbot gateway"
+      echo "  To fix, run:"
+      echo "    ordo doctor --fix"
+      echo "    ordo gateway"
       echo ""
     fi
   else
@@ -140,20 +153,20 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
     fi
     echo ""
     echo "To set up manually, run:"
-    echo "  clawdbot doctor --fix"
-    echo "  clawdbot gateway"
+    echo "  ordo doctor --fix"
+    echo "  ordo gateway"
   fi
 else
   echo "Manual configuration mode."
   echo ""
   echo "To set up your bot, run:"
-  echo "  clawdbot doctor --fix"
-  echo "  clawdbot gateway"
+  echo "  ordo doctor --fix"
+  echo "  ordo gateway"
 fi
 
 echo ""
 echo "========================================"
-echo "  Terminal ready"
+echo "  Terminal ready - type 'ordo' to start"
 echo "========================================"
 echo ""
 

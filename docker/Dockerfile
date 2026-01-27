@@ -4,6 +4,9 @@ FROM node:22-alpine
 
 WORKDIR /home/dev
 
+# Enable community repository for desktop packages
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories
+
 # Install system dependencies including desktop environment
 RUN apk add --no-cache \
     git \
@@ -21,22 +24,29 @@ RUN apk add --no-cache \
     ttf-freefont \
     # Voice message support
     ffmpeg \
-    # Desktop environment for full GUI access
-    xfce4 \
+    # Desktop environment for full GUI access (Alpine package names)
+    xfce4-session \
+    xfce4-panel \
+    xfce4-settings \
     xfce4-terminal \
+    xfdesktop \
+    thunar \
     dbus \
+    # X11 virtual framebuffer
+    xvfb-run \
+    xorg-server \
     # VNC for remote desktop
     x11vnc \
-    xvfb \
-    # noVNC (web-based VNC client)
-    novnc \
-    websockify \
-    # Python for Telethon (full Telegram mode)
+    # Python for Telethon and websockify
     python3 \
     py3-pip \
+    py3-numpy \
     && npm install -g clawdbot@latest playwright \
-    && pip3 install --break-system-packages telethon cryptg \
-    && npx playwright install chromium
+    && pip3 install --break-system-packages telethon cryptg websockify \
+    && npx playwright install chromium \
+    # Install noVNC from source
+    && git clone --depth 1 https://github.com/novnc/noVNC.git /usr/share/novnc \
+    && ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 
 # Create dev user
 RUN adduser -D -s /bin/bash dev && \

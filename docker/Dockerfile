@@ -9,31 +9,69 @@ RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/rep
 
 # Install system dependencies including desktop environment
 RUN apk add --no-cache \
+    # Core tools
     git \
     curl \
+    wget \
     bash \
     jq \
     openssh-client \
+    # Web terminal
     ttyd \
+    # Browser automation
     chromium \
     nss \
     freetype \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
+    # Media processing
     ffmpeg \
+    imagemagick \
+    # Desktop environment
     xfce4 \
     xfce4-terminal \
     dbus \
     xvfb-run \
     xorg-server \
     x11vnc \
+    # Python
     python3 \
     py3-pip \
-    py3-numpy
+    py3-numpy \
+    py3-requests \
+    # Text editors
+    vim \
+    nano \
+    # Development tools
+    make \
+    # File utilities
+    zip \
+    unzip \
+    tar \
+    # Process management
+    htop \
+    # Network tools
+    bind-tools \
+    netcat-openbsd \
+    # GitHub CLI for repo management
+    github-cli \
+    # Database clients
+    sqlite \
+    postgresql-client \
+    # Additional dev tools
+    ripgrep \
+    fd \
+    tree
 
-# Install npm packages
-RUN npm install -g clawdbot@latest playwright
+# Install npm packages (pnpm recommended by moltbot docs)
+# Includes CLIs for autonomous deployment and project management
+RUN npm install -g pnpm clawdbot@latest playwright \
+    vercel \
+    netlify-cli \
+    wrangler \
+    firebase-tools \
+    @railway/cli
 
 # Install Python packages
 RUN pip3 install --break-system-packages telethon websockify
@@ -45,8 +83,9 @@ RUN npx playwright install chromium
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /usr/share/novnc \
     && ln -s /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 
-# Create dev user
+# Create dev user and workspace
 RUN adduser -D -s /bin/bash dev && \
+    mkdir -p /home/dev/workspace /home/dev/.ssh /home/dev/.config && \
     chown -R dev:dev /home/dev
 
 # Copy startup script
@@ -64,10 +103,22 @@ ENV DISPLAY=:1
 # Increase Node.js memory limit to prevent heap out of memory errors
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+# Browser configuration for moltbot (use system Chromium)
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Disable Chromium sandbox (required for Docker)
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
+
 # Environment variables (set at runtime by Ordo.sh)
 ENV USER_WALLET=""
 ENV ORDO_AUTO_CONFIG=""
 ENV ANTHROPIC_API_KEY=""
+ENV OPENAI_API_KEY=""
+ENV GEMINI_API_KEY=""
+ENV GOOGLE_API_KEY=""
 ENV TELEGRAM_TOKEN=""
 ENV TELEGRAM_API_ID=""
 ENV TELEGRAM_API_HASH=""
@@ -80,8 +131,25 @@ ENV EMAIL_IMAP_USER=""
 ENV EMAIL_IMAP_PASS=""
 ENV EMAIL_SMTP_HOST=""
 
-# Expose ports: 7681 = terminal, 6080 = noVNC desktop
-EXPOSE 7681 6080
+# Platform tokens (bot can create accounts and set these itself via browser)
+ENV GITHUB_TOKEN=""
+ENV VERCEL_TOKEN=""
+ENV NETLIFY_AUTH_TOKEN=""
+ENV CLOUDFLARE_API_TOKEN=""
+ENV RAILWAY_TOKEN=""
+ENV FIREBASE_TOKEN=""
+
+# Web search (recommended by moltbot)
+ENV BRAVE_API_KEY=""
+
+# Git config (bot can override these or set up its own identity)
+ENV GIT_AUTHOR_NAME=""
+ENV GIT_AUTHOR_EMAIL=""
+ENV GIT_COMMITTER_NAME=""
+ENV GIT_COMMITTER_EMAIL=""
+
+# Expose ports: 7681 = terminal, 6080 = noVNC desktop, 18789 = moltbot gateway
+EXPOSE 7681 6080 18789
 
 # Start with auto-config script
 CMD ["/usr/local/bin/startup.sh"]

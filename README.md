@@ -42,6 +42,9 @@ Ordo gives you a **dedicated cloud instance** running 24/7. Same power, zero har
 | **Automations** | Set up recurring tasks, reminders, and workflows that run automatically. |
 | **Integrations** | Connect to GitHub, Gmail, Notion, Calendar, and 50+ other services. |
 | **Your Own Instance** | Dedicated VM just for you. Your data stays private and secure. |
+| **Autonomous Deployment** | Bot can create GitHub repos, deploy to Vercel/Netlify/Railway, and launch sites. |
+| **Full Desktop Access** | Remote desktop via noVNC - watch your bot work in real-time. |
+| **Multi-Model Support** | Claude, GPT-4, Gemini - use whichever AI model you prefer. |
 
 ---
 
@@ -137,8 +140,11 @@ bun run dev
 ### Environment Variables
 
 ```env
-# Anthropic API (for AI)
+# AI Provider Keys
 ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+GEMINI_API_KEY=...
+GOOGLE_API_KEY=...
 
 # Solana RPC
 VITE_SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=...
@@ -148,6 +154,16 @@ FLY_API_TOKEN=...
 
 # Bot image (set in Convex dashboard)
 BOT_IMAGE=ghcr.io/ordodotsh/ordo-bot:latest
+
+# Platform Tokens (for autonomous bot deployment)
+GITHUB_TOKEN=ghp_...
+VERCEL_TOKEN=...
+NETLIFY_AUTH_TOKEN=...
+CLOUDFLARE_API_TOKEN=...
+RAILWAY_TOKEN=...
+
+# Web Search
+BRAVE_API_KEY=...
 ```
 
 ---
@@ -184,12 +200,15 @@ ordo.sh/
 - [x] Fly.io VM provisioning
 - [x] Telegram bot integration
 - [x] Discord bot integration
-- [ ] WhatsApp integration
-- [ ] Slack integration
+- [x] WhatsApp integration
+- [x] Slack integration
+- [x] Web browsing capabilities (Playwright + Chromium)
+- [x] Remote desktop access (noVNC)
+- [x] Autonomous GitHub/Vercel deployment
+- [x] Multi-model support (Claude, GPT-4, Gemini)
 - [ ] Persistent memory (vector DB)
-- [ ] Web browsing capabilities
-- [ ] File upload & management
-- [ ] Custom automations
+- [ ] Voice message processing
+- [ ] Custom automations builder
 
 ---
 

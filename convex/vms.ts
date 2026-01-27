@@ -173,7 +173,7 @@ export const provision = action({
               guest: {
                 cpu_kind: "shared",
                 cpus: 1,
-                memory_mb: 512,
+                memory_mb: 1024,
               },
               env: envVars,
               services: [
@@ -462,7 +462,7 @@ export const provisionInternal = internalAction({
               guest: {
                 cpu_kind: "shared",
                 cpus: 1,
-                memory_mb: 512,
+                memory_mb: 1024,
               },
               env: envVars,
               services: [

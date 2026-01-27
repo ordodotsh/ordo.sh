@@ -51,6 +51,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Update Convex with new image
+        if: ${{ secrets.CONVEX_HTTP_URL != '' }}
+        continue-on-error: true
         run: |
           curl -X POST "${{ secrets.CONVEX_HTTP_URL }}/api/update-bot-image" \
             -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \

@@ -3,9 +3,11 @@ import { mutation, query, internalQuery } from "./_generated/server";
 
 const platformValidator = v.union(
   v.literal("telegram"),
+  v.literal("telegram_user"), // Full Telegram mode (MTProto)
   v.literal("discord"),
   v.literal("slack"),
-  v.literal("whatsapp")
+  v.literal("whatsapp"),
+  v.literal("email") // Email (IMAP/SMTP)
 );
 
 // Get all connections for a user (masked tokens)

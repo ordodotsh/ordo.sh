@@ -86,11 +86,25 @@ export const provision = action({
       envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
     }
 
-    // Add channel tokens
+    // Add channel tokens and configs
     for (const conn of connections) {
-      const envKey = `${conn.platform.toUpperCase()}_TOKEN`;
-      if (conn.token) {
-        envVars[envKey] = conn.token;
+      if (conn.platform === "telegram_user") {
+        // Full Telegram mode (MTProto)
+        if (conn.config?.apiId) envVars.TELEGRAM_API_ID = conn.config.apiId;
+        if (conn.config?.apiHash) envVars.TELEGRAM_API_HASH = conn.config.apiHash;
+        if (conn.config?.phone) envVars.TELEGRAM_PHONE = conn.config.phone;
+      } else if (conn.platform === "email") {
+        // Email (IMAP/SMTP)
+        if (conn.config?.imapHost) envVars.EMAIL_IMAP_HOST = conn.config.imapHost;
+        if (conn.config?.imapUser) envVars.EMAIL_IMAP_USER = conn.config.imapUser;
+        if (conn.token) envVars.EMAIL_IMAP_PASS = conn.token; // password stored as token
+        if (conn.config?.smtpHost) envVars.EMAIL_SMTP_HOST = conn.config.smtpHost;
+      } else {
+        // Standard bot tokens
+        const envKey = `${conn.platform.toUpperCase()}_TOKEN`;
+        if (conn.token) {
+          envVars[envKey] = conn.token;
+        }
       }
     }
 
@@ -178,6 +192,7 @@ export const provision = action({
               env: envVars,
               services: [
                 {
+                  // Terminal access
                   ports: [
                     {
                       port: 443,
@@ -190,6 +205,17 @@ export const provision = action({
                   ],
                   protocol: "tcp",
                   internal_port: 7681,
+                },
+                {
+                  // Desktop access (noVNC)
+                  ports: [
+                    {
+                      port: 6080,
+                      handlers: ["tls", "http"],
+                    },
+                  ],
+                  protocol: "tcp",
+                  internal_port: 6080,
                 },
               ],
             },
@@ -379,10 +405,24 @@ export const provisionInternal = internalAction({
       envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
     }
 
+    // Add channel tokens and configs
     for (const conn of connections) {
-      const envKey = `${conn.platform.toUpperCase()}_TOKEN`;
-      if (conn.token) {
-        envVars[envKey] = conn.token;
+      if (conn.platform === "telegram_user") {
+        // Full Telegram mode (MTProto)
+        if (conn.config?.apiId) envVars.TELEGRAM_API_ID = conn.config.apiId;
+        if (conn.config?.apiHash) envVars.TELEGRAM_API_HASH = conn.config.apiHash;
+        if (conn.config?.phone) envVars.TELEGRAM_PHONE = conn.config.phone;
+      } else if (conn.platform === "email") {
+        // Email (IMAP/SMTP)
+        if (conn.config?.imapHost) envVars.EMAIL_IMAP_HOST = conn.config.imapHost;
+        if (conn.config?.imapUser) envVars.EMAIL_IMAP_USER = conn.config.imapUser;
+        if (conn.token) envVars.EMAIL_IMAP_PASS = conn.token;
+        if (conn.config?.smtpHost) envVars.EMAIL_SMTP_HOST = conn.config.smtpHost;
+      } else {
+        const envKey = `${conn.platform.toUpperCase()}_TOKEN`;
+        if (conn.token) {
+          envVars[envKey] = conn.token;
+        }
       }
     }
 
@@ -467,6 +507,7 @@ export const provisionInternal = internalAction({
               env: envVars,
               services: [
                 {
+                  // Terminal access
                   ports: [
                     {
                       port: 443,
@@ -479,6 +520,17 @@ export const provisionInternal = internalAction({
                   ],
                   protocol: "tcp",
                   internal_port: 7681,
+                },
+                {
+                  // Desktop access (noVNC)
+                  ports: [
+                    {
+                      port: 6080,
+                      handlers: ["tls", "http"],
+                    },
+                  ],
+                  protocol: "tcp",
+                  internal_port: 6080,
                 },
               ],
             },

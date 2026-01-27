@@ -62,7 +62,7 @@ let colors = lightColors
 const PLATFORMS = [
   {
     id: 'telegram',
-    name: 'Telegram',
+    name: 'Telegram Bot',
     icon: '/telegram.svg',
     placeholder: 'e.g. 123456789:ABCdefGHIjklMNOpqrsTUVwxyz',
     guide: 'Message @BotFather on Telegram → /newbot → copy the token',
@@ -70,10 +70,27 @@ const PLATFORMS = [
     linkText: 'Open BotFather',
     chatTip: 'Search for your bot username in Telegram and send a message!',
     getBotLink: (token: string) => {
-      // Telegram bot tokens start with the bot ID
       const botId = token.split(':')[0]
       return botId ? `https://t.me/bot${botId}` : null
     },
+    hasConfig: false,
+  },
+  {
+    id: 'telegram_user',
+    name: 'Telegram Full',
+    icon: '/telegram.svg',
+    placeholder: 'Phone number (e.g. +1234567890)',
+    guide: 'Full access to your Telegram account - read all chats, message anyone. Get API credentials from my.telegram.org',
+    link: 'https://my.telegram.org/apps',
+    linkText: 'Get API Credentials',
+    chatTip: 'Your AI has full access to your Telegram account!',
+    getBotLink: () => null,
+    hasConfig: true,
+    configFields: [
+      { key: 'apiId', label: 'API ID', placeholder: 'e.g. 12345678' },
+      { key: 'apiHash', label: 'API Hash', placeholder: 'e.g. 0123456789abcdef...' },
+      { key: 'phone', label: 'Phone Number', placeholder: 'e.g. +1234567890' },
+    ],
   },
   {
     id: 'discord',
@@ -85,6 +102,7 @@ const PLATFORMS = [
     linkText: 'Open Developer Portal',
     chatTip: 'Invite your bot to a server and mention it with @BotName',
     getBotLink: () => null,
+    hasConfig: false,
   },
   {
     id: 'slack',
@@ -96,6 +114,7 @@ const PLATFORMS = [
     linkText: 'Open Slack API',
     chatTip: 'Install the app to your workspace and DM the bot',
     getBotLink: () => null,
+    hasConfig: false,
   },
   {
     id: 'whatsapp',
@@ -107,6 +126,24 @@ const PLATFORMS = [
     linkText: 'Open Meta Business',
     chatTip: 'Send a message to your WhatsApp Business number',
     getBotLink: () => null,
+    hasConfig: false,
+  },
+  {
+    id: 'email',
+    name: 'Email',
+    icon: '/telegram.svg', // TODO: add email icon
+    placeholder: 'Email password or app password',
+    guide: 'Connect your email to read and send messages. Use an app password for Gmail/Outlook.',
+    link: 'https://myaccount.google.com/apppasswords',
+    linkText: 'Get App Password (Gmail)',
+    chatTip: 'Your AI can read and send emails on your behalf!',
+    getBotLink: () => null,
+    hasConfig: true,
+    configFields: [
+      { key: 'imapHost', label: 'IMAP Server', placeholder: 'e.g. imap.gmail.com' },
+      { key: 'smtpHost', label: 'SMTP Server', placeholder: 'e.g. smtp.gmail.com' },
+      { key: 'imapUser', label: 'Email Address', placeholder: 'e.g. you@gmail.com' },
+    ],
   },
 ] as const
 
@@ -205,6 +242,7 @@ export function Dashboard() {
   const [savingKey, setSavingKey] = useState(false)
   const [activeChannel, setActiveChannel] = useState<string | null>(null)
   const [channelToken, setChannelToken] = useState('')
+  const [channelConfig, setChannelConfig] = useState<Record<string, string>>({})
   const [savingChannel, setSavingChannel] = useState(false)
   const [provisioning, setProvisioning] = useState(false)
   const [retrying, setRetrying] = useState(false)
@@ -265,17 +303,23 @@ export function Dashboard() {
   }
 
   const handleSaveChannel = async () => {
-    if (!dashboard?.user || !activeChannel || !channelToken) return
+    if (!dashboard?.user || !activeChannel) return
+    const platform = PLATFORMS.find(p => p.id === activeChannel)
+    // For config-based platforms, token might be optional or in config
+    if (!platform?.hasConfig && !channelToken) return
+    
     setSavingChannel(true)
     try {
       await saveConnection({
         userId: dashboard.user._id,
         platform: activeChannel as any,
         token: channelToken,
+        config: Object.keys(channelConfig).length > 0 ? channelConfig : undefined,
       })
-      toast.success(`${activeChannel} connected`)
+      toast.success(`${platform?.name || activeChannel} connected`)
       setActiveChannel(null)
       setChannelToken('')
+      setChannelConfig({})
     } catch (err) {
       toast.error('Failed to connect', {
         description: err instanceof Error ? err.message : 'Unknown error',
@@ -569,7 +613,7 @@ export function Dashboard() {
                         />
                         {PLATFORMS.find(p => p.id === activeChannel)?.name}
                       </div>
-                      <button style={styles.cancelBtn} onClick={() => setActiveChannel(null)}>
+                      <button style={styles.cancelBtn} onClick={() => { setActiveChannel(null); setChannelConfig({}); }}>
                         Cancel
                       </button>
                     </div>
@@ -586,21 +630,46 @@ export function Dashboard() {
                         {PLATFORMS.find(p => p.id === activeChannel)?.linkText} →
                       </a>
                     </div>
-                    <input
-                      type="password"
-                      placeholder={PLATFORMS.find(p => p.id === activeChannel)?.placeholder}
-                      value={channelToken}
-                      onChange={(e) => setChannelToken(e.target.value)}
-                      style={styles.input}
-                    />
+                    {/* Config fields for platforms that need them */}
+                    {PLATFORMS.find(p => p.id === activeChannel)?.hasConfig && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+                        {(PLATFORMS.find(p => p.id === activeChannel) as any)?.configFields?.map((field: { key: string; label: string; placeholder: string }) => (
+                          <div key={field.key}>
+                            <label style={{ fontSize: 12, color: currentColors.textMuted, marginBottom: 4, display: 'block' }}>
+                              {field.label}
+                            </label>
+                            <input
+                              type={field.key.toLowerCase().includes('hash') || field.key.toLowerCase().includes('pass') ? 'password' : 'text'}
+                              placeholder={field.placeholder}
+                              value={channelConfig[field.key] || ''}
+                              onChange={(e) => setChannelConfig(prev => ({ ...prev, [field.key]: e.target.value }))}
+                              style={styles.input}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Token/password field */}
+                    <div>
+                      <label style={{ fontSize: 12, color: currentColors.textMuted, marginBottom: 4, display: 'block' }}>
+                        {PLATFORMS.find(p => p.id === activeChannel)?.hasConfig ? 'Password / Token' : 'Token'}
+                      </label>
+                      <input
+                        type="password"
+                        placeholder={PLATFORMS.find(p => p.id === activeChannel)?.placeholder}
+                        value={channelToken}
+                        onChange={(e) => setChannelToken(e.target.value)}
+                        style={styles.input}
+                      />
+                    </div>
                     <button
                       style={{
                         ...styles.primaryBtn,
                         marginTop: 12,
-                        opacity: !channelToken || savingChannel ? 0.7 : 1,
+                        opacity: savingChannel ? 0.7 : 1,
                       }}
                       onClick={handleSaveChannel}
-                      disabled={!channelToken || savingChannel}
+                      disabled={savingChannel}
                     >
                       {savingChannel ? 'Connecting...' : 'Connect'}
                     </button>
@@ -770,6 +839,26 @@ export function Dashboard() {
                       <span style={styles.infoValue}>Your bot uses Claude Opus - it can help with coding, research, writing, and more!</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Access Buttons */}
+                <div style={styles.accessButtonsRow}>
+                  <a
+                    href={dashboard.vm.ip}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.accessBtn}
+                  >
+                    <span>🖥️</span> Terminal
+                  </a>
+                  <a
+                    href={`${dashboard.vm.ip.replace('https://', 'https://').split('.fly.dev')[0]}.fly.dev:6080/vnc.html`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ ...styles.accessBtn, background: currentColors.purple }}
+                  >
+                    <span>🖱️</span> Desktop (GUI)
+                  </a>
                 </div>
 
                 {/* Terminal Card */}
@@ -1060,6 +1149,26 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
   },
   terminalSection: {
     width: '100%',
+  },
+  accessButtonsRow: {
+    display: 'flex',
+    gap: 12,
+    marginBottom: 16,
+  },
+  accessBtn: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: '14px 20px',
+    background: c.accent,
+    color: '#fff',
+    borderRadius: 12,
+    fontSize: 15,
+    fontWeight: 600,
+    textDecoration: 'none',
+    transition: 'transform 0.2s, opacity 0.2s',
   },
   card: {
     padding: 24,

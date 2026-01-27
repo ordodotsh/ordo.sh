@@ -1218,6 +1218,18 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     fontWeight: 600,
     cursor: 'pointer',
   },
+  reprovisionBtn: {
+    width: '100%',
+    marginTop: 12,
+    padding: '10px 16px',
+    background: 'transparent',
+    color: c.textSecondary,
+    border: `1px solid ${c.border}`,
+    borderRadius: 8,
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
   errorBox: {
     padding: 12,
     background: c.errorBg,

@@ -12,7 +12,15 @@ RUN apk add --no-cache \
     jq \
     openssh-client \
     ttyd \
-    && npm install -g clawdbot@latest
+    # Playwright/Chromium dependencies
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    && npm install -g clawdbot@latest playwright \
+    && npx playwright install chromium
 
 # Create dev user
 RUN adduser -D -s /bin/bash dev && \

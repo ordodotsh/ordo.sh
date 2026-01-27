@@ -25,7 +25,7 @@ const PLATFORMS = [
   {
     id: 'telegram',
     name: 'Telegram',
-    icon: '✈️',
+    icon: '/telegram.svg',
     placeholder: 'e.g. 123456789:ABCdefGHIjklMNOpqrsTUVwxyz',
     guide: 'Message @BotFather on Telegram → /newbot → copy the token',
     link: 'https://t.me/BotFather',
@@ -34,7 +34,7 @@ const PLATFORMS = [
   {
     id: 'discord',
     name: 'Discord',
-    icon: '🎮',
+    icon: '/discord.svg',
     placeholder: 'e.g. MTIzNDU2Nzg5MDEyMzQ1Njc4OQ...',
     guide: 'Discord Developer Portal → New Application → Bot → Reset Token',
     link: 'https://discord.com/developers/applications',
@@ -43,7 +43,7 @@ const PLATFORMS = [
   {
     id: 'slack',
     name: 'Slack',
-    icon: '💬',
+    icon: '/slack.svg',
     placeholder: 'e.g. xoxb-123456789012-1234567890123-abc...',
     guide: 'Slack API → Create App → OAuth & Permissions → Bot Token',
     link: 'https://api.slack.com/apps',
@@ -52,13 +52,83 @@ const PLATFORMS = [
   {
     id: 'whatsapp',
     name: 'WhatsApp',
-    icon: '📱',
+    icon: '/whatsapp.svg',
     placeholder: 'e.g. EAABsbCS1iH0BAJ...',
     guide: 'Meta Business Suite → WhatsApp → API Setup → Access Token',
     link: 'https://business.facebook.com/settings/whatsapp-business-accounts',
     linkText: 'Open Meta Business',
   },
 ] as const
+
+// Loading skeleton component
+function Skeleton({ width = '100%', height = 20, style = {} }: { width?: string | number; height?: number; style?: React.CSSProperties }) {
+  return (
+    <div
+      style={{
+        width,
+        height,
+        background: `linear-gradient(90deg, ${colors.border} 25%, ${colors.bgAlt} 50%, ${colors.border} 75%)`,
+        backgroundSize: '200% 100%',
+        animation: 'shimmer 1.5s infinite',
+        borderRadius: 8,
+        ...style,
+      }}
+    />
+  )
+}
+
+function LoadingSkeleton() {
+  return (
+    <div style={styles.page}>
+      <div style={styles.content}>
+        {/* Header skeleton */}
+        <header style={styles.header}>
+          <div style={styles.headerLeft}>
+            <Skeleton width={36} height={36} style={{ borderRadius: 8 }} />
+            <Skeleton width={80} height={20} />
+          </div>
+          <div style={styles.headerRight}>
+            <Skeleton width={120} height={36} style={{ borderRadius: 8 }} />
+            <Skeleton width={100} height={36} style={{ borderRadius: 8 }} />
+          </div>
+        </header>
+
+        <main style={styles.main}>
+          {/* Hero skeleton */}
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <Skeleton width={400} height={36} style={{ margin: '0 auto 12px', maxWidth: '100%' }} />
+            <Skeleton width={500} height={48} style={{ margin: '0 auto', maxWidth: '100%' }} />
+          </div>
+
+          {/* Steps skeleton */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 48, marginBottom: 40, padding: '24px 0' }}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <Skeleton width={36} height={36} style={{ borderRadius: '50%' }} />
+                <Skeleton width={60} height={14} />
+              </div>
+            ))}
+          </div>
+
+          {/* Cards skeleton */}
+          <div className="setup-grid" style={styles.setupGrid}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} style={{ ...styles.card, border: `1px solid ${colors.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <Skeleton width={24} height={24} style={{ borderRadius: '50%' }} />
+                  <Skeleton width={120} height={18} />
+                </div>
+                <Skeleton width="100%" height={14} style={{ marginBottom: 8 }} />
+                <Skeleton width="80%" height={14} style={{ marginBottom: 16 }} />
+                <Skeleton width="100%" height={44} style={{ borderRadius: 10 }} />
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
 
 export function Dashboard() {
   const { publicKey, disconnect } = useWallet()
@@ -88,6 +158,7 @@ export function Dashboard() {
   const [savingChannel, setSavingChannel] = useState(false)
   const [provisioning, setProvisioning] = useState(false)
   const [retrying, setRetrying] = useState(false)
+  const [showFaq, setShowFaq] = useState(false)
 
   useEffect(() => {
     if (!publicKey) {
@@ -184,6 +255,11 @@ export function Dashboard() {
 
   if (!publicKey) return null
 
+  // Show loading skeleton while data is loading
+  if (dashboard === undefined) {
+    return <LoadingSkeleton />
+  }
+
   const hasSubscription = !!dashboard?.subscription
   const hasApiKey = !!credentials?.hasAnthropicKey
   const hasChannels = (connections?.length || 0) > 0
@@ -256,9 +332,9 @@ export function Dashboard() {
           </div>
 
           {/* Main Content Area */}
-          <div style={styles.mainGrid}>
-            {/* Left Column - Setup */}
-            <div style={styles.setupColumn}>
+          <div style={styles.mainLayout}>
+            {/* Setup Cards */}
+            <div className="setup-grid" style={styles.setupGrid}>
               {/* Step 1: Subscribe */}
               <div style={{
                 ...styles.card,
@@ -369,20 +445,29 @@ export function Dashboard() {
                 {/* Connected Channels */}
                 {connections && connections.length > 0 && (
                   <div style={styles.connectedList}>
-                    {connections.map((conn) => (
-                      <div key={conn._id} style={styles.connectedItem}>
-                        <span style={styles.connectedPlatform}>
-                          {PLATFORMS.find(p => p.id === conn.platform)?.icon}{' '}
-                          {PLATFORMS.find(p => p.id === conn.platform)?.name}
-                        </span>
-                        <button
-                          style={styles.removeBtn}
-                          onClick={() => handleRemoveChannel(conn._id)}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+                    {connections.map((conn) => {
+                      const platform = PLATFORMS.find(p => p.id === conn.platform)
+                      return (
+                        <div key={conn._id} style={styles.connectedItem}>
+                          <div style={styles.connectedPlatformInfo}>
+                            <img src={platform?.icon} alt={platform?.name} style={styles.connectedIcon} />
+                            <span style={styles.connectedPlatform}>{platform?.name}</span>
+                            {vmRunning && (
+                              <span style={styles.onlineIndicator}>
+                                <span style={styles.onlineDot} />
+                                Online
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            style={styles.removeBtn}
+                            onClick={() => handleRemoveChannel(conn._id)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 
@@ -390,10 +475,14 @@ export function Dashboard() {
                 {activeChannel ? (
                   <div style={styles.addChannelForm}>
                     <div style={styles.channelFormHeader}>
-                      <span>
-                        {PLATFORMS.find(p => p.id === activeChannel)?.icon}{' '}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <img
+                          src={PLATFORMS.find(p => p.id === activeChannel)?.icon}
+                          alt={activeChannel}
+                          style={{ width: 20, height: 20 }}
+                        />
                         {PLATFORMS.find(p => p.id === activeChannel)?.name}
-                      </span>
+                      </div>
                       <button style={styles.cancelBtn} onClick={() => setActiveChannel(null)}>
                         Cancel
                       </button>
@@ -431,7 +520,7 @@ export function Dashboard() {
                     </button>
                   </div>
                 ) : (
-                  <div style={styles.platformGrid}>
+                  <div className="platform-grid" style={styles.platformGrid}>
                     {PLATFORMS.map((platform) => {
                       const isConnected = connections?.some(c => c.platform === platform.id)
                       return (
@@ -444,7 +533,7 @@ export function Dashboard() {
                           onClick={() => !isConnected && setActiveChannel(platform.id)}
                           disabled={isConnected}
                         >
-                          <span style={styles.platformIcon}>{platform.icon}</span>
+                          <img src={platform.icon} alt={platform.name} style={styles.platformIconImg} />
                           <span>{platform.name}</span>
                           {isConnected && <span style={styles.connectedBadge}>✓</span>}
                         </button>
@@ -515,20 +604,12 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Right Column - Terminal / Status */}
-            <div style={styles.terminalColumn}>
-              {vmRunning && dashboard?.vm?.ip ? (
+            {/* Terminal Section - Full Width Below */}
+            {vmRunning && dashboard?.vm?.ip && (
+              <div style={styles.terminalSection}>
                 <div style={styles.terminalCard}>
                   <div style={styles.terminalHeader}>
                     <h3 style={styles.terminalTitle}>Terminal</h3>
-                    <a
-                      href={dashboard.vm.ip}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.openNewTabBtn}
-                    >
-                      Open in new tab ↗
-                    </a>
                   </div>
                   <div style={styles.terminalContainer}>
                     <iframe
@@ -539,114 +620,102 @@ export function Dashboard() {
                     />
                   </div>
                 </div>
-              ) : (
-                <div style={styles.previewCard}>
-                  <div style={styles.previewContent}>
-                    <div style={styles.previewIcon}>🤖</div>
-                    <h3 style={styles.previewTitle}>What you'll get</h3>
-                    <ul style={styles.featureList}>
-                      <li style={styles.featureItem}>
-                        <span style={styles.featureCheck}>✓</span>
-                        24/7 AI assistant on your favorite platforms
-                      </li>
-                      <li style={styles.featureItem}>
-                        <span style={styles.featureCheck}>✓</span>
-                        Powered by Claude - Anthropic's most capable AI
-                      </li>
-                      <li style={styles.featureItem}>
-                        <span style={styles.featureCheck}>✓</span>
-                        Web terminal for advanced configuration
-                      </li>
-                      <li style={styles.featureItem}>
-                        <span style={styles.featureCheck}>✓</span>
-                        Automatic updates and maintenance
-                      </li>
-                      <li style={styles.featureItem}>
-                        <span style={styles.featureCheck}>✓</span>
-                        Your data stays private on your instance
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* FAQ Section */}
+          {/* FAQ Section - Collapsible */}
           <div style={styles.faqSection}>
-            <h2 style={styles.faqTitle}>Frequently Asked Questions</h2>
-            <div style={styles.faqGrid}>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>What is Ordo.sh?</h4>
-                <p style={styles.faqAnswer}>
-                  Ordo.sh gives you a dedicated cloud server running clawdbot - an AI assistant
-                  that connects to Telegram, Discord, Slack, and WhatsApp. Think of it as having
-                  your own AI assistant available 24/7 on all your messaging platforms.
-                </p>
+            <button
+              style={styles.faqToggle}
+              onClick={() => setShowFaq(!showFaq)}
+            >
+              <span style={styles.faqToggleText}>
+                Questions? Check our FAQ
+              </span>
+              <span style={{
+                ...styles.faqToggleIcon,
+                transform: showFaq ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}>
+                ▼
+              </span>
+            </button>
+            {showFaq && (
+              <div style={styles.faqContent}>
+                <div className="faq-grid" style={styles.faqGrid}>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>What is Ordo.sh?</h4>
+                    <p style={styles.faqAnswer}>
+                      Ordo.sh gives you a dedicated cloud server running clawdbot - an AI assistant
+                      that connects to Telegram, Discord, Slack, and WhatsApp. Think of it as having
+                      your own AI assistant available 24/7 on all your messaging platforms.
+                    </p>
+                  </div>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>Do I need my own Anthropic API key?</h4>
+                    <p style={styles.faqAnswer}>
+                      Yes. You bring your own API key from{' '}
+                      <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
+                        console.anthropic.com
+                      </a>.
+                      This means you pay Anthropic directly for AI usage - we only charge for the
+                      cloud infrastructure.
+                    </p>
+                  </div>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>How do I get a Telegram bot token?</h4>
+                    <p style={styles.faqAnswer}>
+                      Message{' '}
+                      <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
+                        @BotFather
+                      </a>{' '}
+                      on Telegram, send /newbot, follow the prompts to name your bot,
+                      and copy the token it gives you.
+                    </p>
+                  </div>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>How do I get a Discord bot token?</h4>
+                    <p style={styles.faqAnswer}>
+                      Go to the{' '}
+                      <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
+                        Discord Developer Portal
+                      </a>,
+                      create a new application, go to Bot settings, and click "Reset Token" to get your token.
+                      Don't forget to invite the bot to your server.
+                    </p>
+                  </div>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>What happens when my subscription expires?</h4>
+                    <p style={styles.faqAnswer}>
+                      Your VM will be automatically stopped when your subscription expires.
+                      Your configuration and data are preserved - just renew to restart your bot.
+                    </p>
+                  </div>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>Can I add multiple channels?</h4>
+                    <p style={styles.faqAnswer}>
+                      Yes! You can connect Telegram, Discord, Slack, and WhatsApp all at once.
+                      Your AI assistant will respond on all connected platforms.
+                    </p>
+                  </div>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>What is the terminal for?</h4>
+                    <p style={styles.faqAnswer}>
+                      The terminal gives you direct access to your cloud server for advanced
+                      configuration. Most users won't need it - everything can be configured
+                      through the dashboard.
+                    </p>
+                  </div>
+                  <div style={styles.faqItem}>
+                    <h4 style={styles.faqQuestion}>Is my data private?</h4>
+                    <p style={styles.faqAnswer}>
+                      Yes. You have your own dedicated server. Your API keys, bot tokens, and
+                      conversation data stay on your instance - we don't have access to them.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>Do I need my own Anthropic API key?</h4>
-                <p style={styles.faqAnswer}>
-                  Yes. You bring your own API key from{' '}
-                  <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
-                    console.anthropic.com
-                  </a>.
-                  This means you pay Anthropic directly for AI usage - we only charge for the
-                  cloud infrastructure.
-                </p>
-              </div>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>How do I get a Telegram bot token?</h4>
-                <p style={styles.faqAnswer}>
-                  Message{' '}
-                  <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
-                    @BotFather
-                  </a>{' '}
-                  on Telegram, send /newbot, follow the prompts to name your bot,
-                  and copy the token it gives you.
-                </p>
-              </div>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>How do I get a Discord bot token?</h4>
-                <p style={styles.faqAnswer}>
-                  Go to the{' '}
-                  <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" style={styles.faqLink}>
-                    Discord Developer Portal
-                  </a>,
-                  create a new application, go to Bot settings, and click "Reset Token" to get your token.
-                  Don't forget to invite the bot to your server.
-                </p>
-              </div>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>What happens when my subscription expires?</h4>
-                <p style={styles.faqAnswer}>
-                  Your VM will be automatically stopped when your subscription expires.
-                  Your configuration and data are preserved - just renew to restart your bot.
-                </p>
-              </div>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>Can I add multiple channels?</h4>
-                <p style={styles.faqAnswer}>
-                  Yes! You can connect Telegram, Discord, Slack, and WhatsApp all at once.
-                  Your AI assistant will respond on all connected platforms.
-                </p>
-              </div>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>What is the terminal for?</h4>
-                <p style={styles.faqAnswer}>
-                  The terminal gives you direct access to your cloud server for advanced
-                  configuration. Most users won't need it - everything can be configured
-                  through the dashboard.
-                </p>
-              </div>
-              <div style={styles.faqItem}>
-                <h4 style={styles.faqQuestion}>Is my data private?</h4>
-                <p style={styles.faqAnswer}>
-                  Yes. You have your own dedicated server. Your API keys, bot tokens, and
-                  conversation data stay on your instance - we don't have access to them.
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </main>
       </div>
@@ -776,20 +845,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 500,
   },
-  mainGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: 24,
-  },
-  setupColumn: {
+  mainLayout: {
     display: 'flex',
     flexDirection: 'column',
+    gap: 24,
+  },
+  setupGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: 16,
   },
-  terminalColumn: {
-    position: 'sticky',
-    top: 24,
-    height: 'fit-content',
+  terminalSection: {
+    width: '100%',
   },
   card: {
     padding: 24,
@@ -926,6 +993,30 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
     color: colors.text,
   },
+  connectedPlatformInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+  },
+  connectedIcon: {
+    width: 20,
+    height: 20,
+  },
+  onlineIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    fontSize: 11,
+    color: colors.green,
+    fontWeight: 500,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    background: colors.green,
+    animation: 'pulse 2s infinite',
+  },
   removeBtn: {
     width: 24,
     height: 24,
@@ -962,6 +1053,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   platformIcon: {
     fontSize: 24,
+  },
+  platformIconImg: {
+    width: 28,
+    height: 28,
   },
   connectedBadge: {
     position: 'absolute',
@@ -1100,20 +1195,9 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.text,
     margin: 0,
   },
-  openNewTabBtn: {
-    padding: '6px 12px',
-    background: colors.bgAlt,
-    color: colors.textSecondary,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 6,
-    fontSize: 12,
-    fontWeight: 500,
-    textDecoration: 'none',
-    cursor: 'pointer',
-  },
   terminalContainer: {
     width: '100%',
-    height: 500,
+    height: 600,
     background: '#1a1a1a',
   },
   terminalIframe: {
@@ -1166,15 +1250,33 @@ const styles: Record<string, React.CSSProperties> = {
   },
   faqSection: {
     marginTop: 48,
-    paddingTop: 48,
+    paddingTop: 32,
     borderTop: `1px solid ${colors.border}`,
   },
-  faqTitle: {
-    fontSize: 24,
-    fontWeight: 700,
-    color: colors.text,
-    marginBottom: 24,
-    textAlign: 'center',
+  faqToggle: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    padding: '12px 24px',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: 500,
+    transition: 'color 0.2s',
+  },
+  faqToggleText: {
+    color: 'inherit',
+  },
+  faqToggleIcon: {
+    fontSize: 10,
+    transition: 'transform 0.2s',
+  },
+  faqContent: {
+    marginTop: 24,
   },
   faqGrid: {
     display: 'grid',
@@ -1207,11 +1309,42 @@ const styles: Record<string, React.CSSProperties> = {
   },
 }
 
-// Add keyframes for spinner animation
+// Add keyframes and responsive styles
 const styleSheet = document.createElement('style')
 styleSheet.textContent = `
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+  
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    .setup-grid {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .platform-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
+    
+    .faq-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .platform-grid {
+      grid-template-columns: 1fr !important;
+    }
   }
 `
 document.head.appendChild(styleSheet)

@@ -1,12 +1,12 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useQuery, useAction, useMutation } from 'convex/react'
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { api } from '../../convex/_generated/api'
 import { usePayment } from './usePayment'
 
-const colors = {
+const lightColors = {
   bg: '#FAF9F7',
   bgAlt: '#F5F4F1',
   text: '#1A1715',
@@ -19,7 +19,45 @@ const colors = {
   green: '#22C55E',
   red: '#EF4444',
   purple: '#7C3AED',
+  inputBg: '#FFFFFF',
+  guideBoxBg: '#FEF3C7',
+  guideBoxBorder: '#FCD34D',
+  guideBoxText: '#92400E',
+  errorBg: '#FEF2F2',
+  errorBorder: '#FECACA',
+  errorText: '#991B1B',
+  successBg: '#DCFCE7',
 }
+
+const darkColors = {
+  bg: '#0F0F0F',
+  bgAlt: '#1A1A1A',
+  text: '#F5F5F5',
+  textSecondary: '#A0A0A0',
+  textMuted: '#707070',
+  accent: '#F59E0B',
+  accentHover: '#D97706',
+  border: '#2A2A2A',
+  cardBg: '#171717',
+  green: '#22C55E',
+  red: '#EF4444',
+  purple: '#A78BFA',
+  inputBg: '#1A1A1A',
+  guideBoxBg: '#292524',
+  guideBoxBorder: '#78716C',
+  guideBoxText: '#FCD34D',
+  errorBg: '#450A0A',
+  errorBorder: '#7F1D1D',
+  errorText: '#FCA5A5',
+  successBg: '#14532D',
+}
+
+type Colors = typeof lightColors
+
+const getColors = (isDark: boolean): Colors => isDark ? darkColors : lightColors
+
+// For skeleton - use a default for initial render
+let colors = lightColors
 
 const PLATFORMS = [
   {
@@ -159,6 +197,29 @@ export function Dashboard() {
   const [provisioning, setProvisioning] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [showFaq, setShowFaq] = useState(false)
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ordo-theme')
+      if (saved) return saved === 'dark'
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+    }
+    return false
+  })
+
+  // Update colors and persist theme preference
+  const currentColors = useMemo(() => getColors(isDark), [isDark])
+  colors = currentColors // Update global for skeleton
+
+  const toggleTheme = () => {
+    setIsDark(prev => {
+      const next = !prev
+      localStorage.setItem('ordo-theme', next ? 'dark' : 'light')
+      return next
+    })
+  }
+
+  // Generate styles with current colors
+  const styles = useMemo(() => createStyles(currentColors), [currentColors])
 
   useEffect(() => {
     if (!publicKey) {
@@ -281,6 +342,9 @@ export function Dashboard() {
           </div>
           <div style={styles.headerRight}>
             {dashboard?.isAdmin && <span style={styles.adminBadge}>Admin</span>}
+            <button onClick={toggleTheme} style={styles.themeToggle} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+              {isDark ? '☀️' : '🌙'}
+            </button>
             <div style={styles.walletInfo}>
               <span style={styles.walletDot} />
               {truncateAddress(walletAddress)}
@@ -313,8 +377,8 @@ export function Dashboard() {
                 <div
                   style={{
                     ...styles.stepCircle,
-                    background: currentStep > step.num ? colors.green : currentStep === step.num ? colors.accent : colors.border,
-                    color: currentStep >= step.num ? '#fff' : colors.textMuted,
+                    background: currentStep > step.num ? currentColors.green : currentStep === step.num ? currentColors.accent : currentColors.border,
+                    color: currentStep >= step.num ? '#fff' : currentColors.textMuted,
                   }}
                 >
                   {currentStep > step.num ? '✓' : step.num}
@@ -322,7 +386,7 @@ export function Dashboard() {
                 <span
                   style={{
                     ...styles.stepLabel,
-                    color: currentStep >= step.num ? colors.text : colors.textMuted,
+                    color: currentStep >= step.num ? currentColors.text : currentColors.textMuted,
                   }}
                 >
                   {step.label}
@@ -339,7 +403,7 @@ export function Dashboard() {
               <div style={{
                 ...styles.card,
                 opacity: currentStep === 1 ? 1 : 0.6,
-                border: currentStep === 1 ? `2px solid ${colors.accent}` : `1px solid ${colors.border}`,
+                border: currentStep === 1 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
               }}>
                 <div style={styles.cardHeader}>
                   <span style={styles.stepBadge}>1</span>
@@ -380,7 +444,7 @@ export function Dashboard() {
               <div style={{
                 ...styles.card,
                 opacity: currentStep >= 2 ? 1 : 0.4,
-                border: currentStep === 2 ? `2px solid ${colors.accent}` : `1px solid ${colors.border}`,
+                border: currentStep === 2 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
                 pointerEvents: currentStep >= 2 ? 'auto' : 'none',
               }}>
                 <div style={styles.cardHeader}>
@@ -433,7 +497,7 @@ export function Dashboard() {
               <div style={{
                 ...styles.card,
                 opacity: currentStep >= 3 ? 1 : 0.4,
-                border: currentStep === 3 ? `2px solid ${colors.accent}` : `1px solid ${colors.border}`,
+                border: currentStep === 3 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
                 pointerEvents: currentStep >= 3 ? 'auto' : 'none',
               }}>
                 <div style={styles.cardHeader}>
@@ -547,7 +611,7 @@ export function Dashboard() {
               <div style={{
                 ...styles.card,
                 opacity: currentStep >= 4 ? 1 : 0.4,
-                border: currentStep === 4 ? `2px solid ${colors.accent}` : `1px solid ${colors.border}`,
+                border: currentStep === 4 ? `2px solid ${currentColors.accent}` : `1px solid ${currentColors.border}`,
                 pointerEvents: currentStep >= 4 ? 'auto' : 'none',
               }}>
                 <div style={styles.cardHeader}>
@@ -596,9 +660,27 @@ export function Dashboard() {
                     <span>Setting up your instance...</span>
                   </div>
                 ) : (
-                  <div style={styles.runningState}>
-                    <span style={styles.runningBadge}>Running</span>
-                    <span style={styles.regionText}>Region: {dashboard?.vm?.region}</span>
+                  <div>
+                    <div style={styles.runningState}>
+                      <span style={{
+                        ...styles.runningBadge,
+                        background: dashboard?.vm?.status === 'stopped' ? currentColors.textMuted : currentColors.successBg,
+                        color: dashboard?.vm?.status === 'stopped' ? '#fff' : currentColors.green,
+                      }}>
+                        {dashboard?.vm?.status === 'stopped' ? 'Stopped' : 'Running'}
+                      </span>
+                      <span style={styles.regionText}>Region: {dashboard?.vm?.region}</span>
+                    </div>
+                    <button
+                      style={{
+                        ...styles.reprovisionBtn,
+                        opacity: retrying ? 0.7 : 1,
+                      }}
+                      onClick={handleRetry}
+                      disabled={retrying}
+                    >
+                      {retrying ? 'Reprovisioning...' : '↻ Reprovision'}
+                    </button>
                   </div>
                 )}
               </div>
@@ -723,11 +805,12 @@ export function Dashboard() {
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
   page: {
     minHeight: '100vh',
     width: '100%',
-    background: colors.bg,
+    background: c.bg,
+    transition: 'background 0.3s ease',
   },
   content: {
     maxWidth: 1200,
@@ -739,7 +822,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '20px 0',
-    borderBottom: `1px solid ${colors.border}`,
+    borderBottom: `1px solid ${c.border}`,
   },
   headerLeft: {
     display: 'flex',
@@ -754,44 +837,53 @@ const styles: Record<string, React.CSSProperties> = {
   logoText: {
     fontSize: 18,
     fontWeight: 600,
-    color: colors.text,
+    color: c.text,
   },
   headerRight: {
     display: 'flex',
     alignItems: 'center',
     gap: 16,
   },
+  themeToggle: {
+    padding: '8px 12px',
+    background: c.bgAlt,
+    border: `1px solid ${c.border}`,
+    borderRadius: 8,
+    fontSize: 16,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
   walletInfo: {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
     padding: '8px 16px',
-    background: colors.cardBg,
-    border: `1px solid ${colors.border}`,
+    background: c.cardBg,
+    border: `1px solid ${c.border}`,
     borderRadius: 8,
     fontSize: 14,
     fontWeight: 500,
-    color: colors.text,
+    color: c.text,
   },
   walletDot: {
     width: 8,
     height: 8,
     borderRadius: '50%',
-    background: colors.green,
+    background: c.green,
   },
   disconnectBtn: {
     padding: '8px 16px',
     background: 'transparent',
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${c.border}`,
     borderRadius: 8,
     fontSize: 14,
     fontWeight: 500,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     cursor: 'pointer',
   },
   adminBadge: {
     padding: '4px 10px',
-    background: colors.purple,
+    background: c.purple,
     color: '#fff',
     borderRadius: 6,
     fontSize: 12,
@@ -807,12 +899,12 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     fontSize: 36,
     fontWeight: 700,
-    color: colors.text,
+    color: c.text,
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 18,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     maxWidth: 500,
     margin: '0 auto',
     lineHeight: 1.5,
@@ -860,7 +952,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   card: {
     padding: 24,
-    background: colors.cardBg,
+    background: c.cardBg,
     borderRadius: 16,
     transition: 'all 0.2s',
   },
@@ -874,7 +966,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 24,
     height: 24,
     borderRadius: '50%',
-    background: colors.accent,
+    background: c.accent,
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -885,7 +977,7 @@ const styles: Record<string, React.CSSProperties> = {
   cardTitle: {
     fontSize: 16,
     fontWeight: 600,
-    color: colors.text,
+    color: c.text,
     margin: 0,
     flex: 1,
   },
@@ -893,7 +985,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 24,
     height: 24,
     borderRadius: '50%',
-    background: colors.green,
+    background: c.green,
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -902,7 +994,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cardDesc: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     marginBottom: 16,
     lineHeight: 1.5,
   },
@@ -913,27 +1005,27 @@ const styles: Record<string, React.CSSProperties> = {
   },
   statusBadge: {
     padding: '4px 12px',
-    background: '#DCFCE7',
-    color: colors.green,
+    background: c.successBg,
+    color: c.green,
     borderRadius: 12,
     fontSize: 12,
     fontWeight: 600,
   },
   planText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   keyPreview: {
     fontSize: 13,
     fontFamily: 'monospace',
-    color: colors.textSecondary,
-    background: colors.bgAlt,
+    color: c.textSecondary,
+    background: c.bgAlt,
     padding: '4px 8px',
     borderRadius: 4,
   },
   changeBtn: {
     fontSize: 13,
-    color: colors.accent,
+    color: c.accent,
     background: 'none',
     border: 'none',
     cursor: 'pointer',
@@ -946,14 +1038,16 @@ const styles: Record<string, React.CSSProperties> = {
   input: {
     flex: 1,
     padding: '12px 16px',
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${c.border}`,
     borderRadius: 8,
     fontSize: 14,
     outline: 'none',
+    background: c.inputBg,
+    color: c.text,
   },
   saveBtn: {
     padding: '12px 20px',
-    background: colors.accent,
+    background: c.accent,
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -964,7 +1058,7 @@ const styles: Record<string, React.CSSProperties> = {
   primaryBtn: {
     width: '100%',
     padding: '14px 24px',
-    background: colors.accent,
+    background: c.accent,
     color: '#fff',
     border: 'none',
     borderRadius: 10,
@@ -973,7 +1067,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   link: {
-    color: colors.accent,
+    color: c.accent,
     textDecoration: 'none',
   },
   connectedList: {
@@ -984,14 +1078,14 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '10px 12px',
-    background: colors.bgAlt,
+    background: c.bgAlt,
     borderRadius: 8,
     marginBottom: 8,
   },
   connectedPlatform: {
     fontSize: 14,
     fontWeight: 500,
-    color: colors.text,
+    color: c.text,
   },
   connectedPlatformInfo: {
     display: 'flex',
@@ -1007,21 +1101,21 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 4,
     fontSize: 11,
-    color: colors.green,
+    color: c.green,
     fontWeight: 500,
   },
   onlineDot: {
     width: 6,
     height: 6,
     borderRadius: '50%',
-    background: colors.green,
+    background: c.green,
     animation: 'pulse 2s infinite',
   },
   removeBtn: {
     width: 24,
     height: 24,
     borderRadius: '50%',
-    background: colors.red,
+    background: c.red,
     color: '#fff',
     border: 'none',
     fontSize: 16,
@@ -1041,13 +1135,13 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 6,
     padding: '16px 12px',
-    background: colors.bgAlt,
-    border: `1px solid ${colors.border}`,
+    background: c.bgAlt,
+    border: `1px solid ${c.border}`,
     borderRadius: 12,
     cursor: 'pointer',
     fontSize: 13,
     fontWeight: 500,
-    color: colors.text,
+    color: c.text,
     position: 'relative',
     transition: 'all 0.2s',
   },
@@ -1065,7 +1159,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 18,
     height: 18,
     borderRadius: '50%',
-    background: colors.green,
+    background: c.green,
     color: '#fff',
     fontSize: 11,
     display: 'flex',
@@ -1074,8 +1168,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   addChannelForm: {
     padding: 16,
-    background: colors.bgAlt,
+    background: c.bgAlt,
     borderRadius: 12,
+    color: c.text,
   },
   channelFormHeader: {
     display: 'flex',
@@ -1087,21 +1182,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cancelBtn: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     background: 'none',
     border: 'none',
     cursor: 'pointer',
   },
   guideBox: {
-    background: '#FEF3C7',
-    border: '1px solid #FCD34D',
+    background: c.guideBoxBg,
+    border: `1px solid ${c.guideBoxBorder}`,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
   },
   guideText: {
     fontSize: 13,
-    color: '#92400E',
+    color: c.guideBoxText,
     margin: 0,
     marginBottom: 8,
     lineHeight: 1.4,
@@ -1109,13 +1204,13 @@ const styles: Record<string, React.CSSProperties> = {
   guideLink: {
     fontSize: 13,
     fontWeight: 600,
-    color: colors.accent,
+    color: c.accent,
     textDecoration: 'none',
   },
   launchBtn: {
     width: '100%',
     padding: '16px 24px',
-    background: colors.green,
+    background: c.green,
     color: '#fff',
     border: 'none',
     borderRadius: 12,
@@ -1125,20 +1220,20 @@ const styles: Record<string, React.CSSProperties> = {
   },
   errorBox: {
     padding: 12,
-    background: '#FEF2F2',
-    border: '1px solid #FECACA',
+    background: c.errorBg,
+    border: `1px solid ${c.errorBorder}`,
     borderRadius: 8,
   },
   errorLabel: {
     display: 'block',
     fontSize: 12,
     fontWeight: 600,
-    color: colors.red,
+    color: c.red,
     marginBottom: 4,
   },
   errorText: {
     fontSize: 13,
-    color: '#991B1B',
+    color: c.errorText,
     wordBreak: 'break-word',
   },
   provisioningState: {
@@ -1146,16 +1241,16 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 12,
     padding: 16,
-    background: colors.bgAlt,
+    background: c.bgAlt,
     borderRadius: 8,
     fontSize: 14,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   spinner: {
     width: 20,
     height: 20,
-    border: `2px solid ${colors.border}`,
-    borderTopColor: colors.accent,
+    border: `2px solid ${c.border}`,
+    borderTopColor: c.accent,
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   },
@@ -1166,33 +1261,33 @@ const styles: Record<string, React.CSSProperties> = {
   },
   runningBadge: {
     padding: '6px 14px',
-    background: '#DCFCE7',
-    color: colors.green,
+    background: c.successBg,
+    color: c.green,
     borderRadius: 12,
     fontSize: 13,
     fontWeight: 600,
   },
   regionText: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   terminalCard: {
-    background: colors.cardBg,
+    background: c.cardBg,
     borderRadius: 16,
     overflow: 'hidden',
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${c.border}`,
   },
   terminalHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '16px 20px',
-    borderBottom: `1px solid ${colors.border}`,
+    borderBottom: `1px solid ${c.border}`,
   },
   terminalTitle: {
     fontSize: 16,
     fontWeight: 600,
-    color: colors.text,
+    color: c.text,
     margin: 0,
   },
   terminalContainer: {
@@ -1206,9 +1301,9 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
   },
   previewCard: {
-    background: `linear-gradient(135deg, ${colors.accent}15 0%, ${colors.purple}15 100%)`,
+    background: `linear-gradient(135deg, ${c.accent}15 0%, ${c.purple}15 100%)`,
     borderRadius: 16,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${c.border}`,
     padding: 32,
     minHeight: 400,
     display: 'flex',
@@ -1225,7 +1320,7 @@ const styles: Record<string, React.CSSProperties> = {
   previewTitle: {
     fontSize: 20,
     fontWeight: 600,
-    color: colors.text,
+    color: c.text,
     marginBottom: 16,
   },
   featureList: {
@@ -1240,18 +1335,18 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 10,
     marginBottom: 12,
     fontSize: 14,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     lineHeight: 1.4,
   },
   featureCheck: {
-    color: colors.green,
+    color: c.green,
     fontWeight: 600,
     flexShrink: 0,
   },
   faqSection: {
     marginTop: 48,
     paddingTop: 32,
-    borderTop: `1px solid ${colors.border}`,
+    borderTop: `1px solid ${c.border}`,
   },
   faqToggle: {
     display: 'flex',
@@ -1263,7 +1358,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 14,
     fontWeight: 500,
     transition: 'color 0.2s',
@@ -1285,29 +1380,32 @@ const styles: Record<string, React.CSSProperties> = {
   },
   faqItem: {
     padding: 20,
-    background: colors.cardBg,
-    border: `1px solid ${colors.border}`,
+    background: c.cardBg,
+    border: `1px solid ${c.border}`,
     borderRadius: 12,
   },
   faqQuestion: {
     fontSize: 15,
     fontWeight: 600,
-    color: colors.text,
+    color: c.text,
     marginBottom: 8,
     margin: 0,
   },
   faqAnswer: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     lineHeight: 1.6,
     margin: 0,
     marginTop: 8,
   },
   faqLink: {
-    color: colors.accent,
+    color: c.accent,
     textDecoration: 'none',
   },
-}
+})
+
+// Default styles for initial render (light mode)
+const styles = createStyles(lightColors)
 
 // Add keyframes and responsive styles
 const styleSheet = document.createElement('style')

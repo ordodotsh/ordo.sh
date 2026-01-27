@@ -51,10 +51,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Update Convex with new image
-        if: ${{ secrets.CONVEX_HTTP_URL != '' }}
         continue-on-error: true
         run: |
-          curl -X POST "${{ secrets.CONVEX_HTTP_URL }}/api/update-bot-image" \
-            -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
-            -H "Content-Type: application/json" \
-            -d '{"sha": "${{ github.sha }}"}'
+          if [ -n "$CONVEX_URL" ]; then
+            curl -X POST "${CONVEX_URL}/api/update-bot-image" \
+              -H "Authorization: Bearer ${WEBHOOK_SECRET}" \
+              -H "Content-Type: application/json" \
+              -d '{"sha": "${{ github.sha }}"}'
+          else
+            echo "Skipping: CONVEX_HTTP_URL not configured"
+          fi
+        env:
+          CONVEX_URL: ${{ secrets.CONVEX_HTTP_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}

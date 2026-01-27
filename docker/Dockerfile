@@ -32,8 +32,10 @@ RUN apk add --no-cache \
     xfce4 \
     xfce4-terminal \
     dbus \
+    dbus-x11 \
     xvfb-run \
     xorg-server \
+    xrdb \
     x11vnc \
     # Python
     python3 \
@@ -76,8 +78,8 @@ RUN npm install -g pnpm clawdbot@latest playwright \
 # Install Python packages
 RUN pip3 install --break-system-packages telethon websockify
 
-# Install Playwright browsers
-RUN npx playwright install chromium
+# Skip Playwright browser download during build (will use system Chromium)
+# Playwright browsers would need to be installed as the dev user anyway
 
 # Install noVNC from source
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /usr/share/novnc \
@@ -100,8 +102,8 @@ ENV SHELL=/bin/bash
 ENV HOME=/home/dev
 ENV DISPLAY=:1
 
-# Increase Node.js memory limit to prevent heap out of memory errors
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Increase Node.js memory limit (should be ~75% of container memory)
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 
 # Browser configuration for moltbot (use system Chromium)
 ENV CHROME_BIN=/usr/bin/chromium-browser

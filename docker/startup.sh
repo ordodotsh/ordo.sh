@@ -168,5 +168,5 @@ Xvfb :1 -screen 0 1920x1080x24 &
 sleep 1
 
 # Start ttyd with bash (terminal access on port 7681)
-# Bind to 0.0.0.0 explicitly for Fly.io
+# Bind to 0.0.0.0 explicitly for external access
 exec ttyd -W -p 7681 -i 0.0.0.0 bash -l

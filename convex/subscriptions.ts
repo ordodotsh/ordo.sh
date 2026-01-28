@@ -176,7 +176,7 @@ export const stopExpiredVMs = internalAction({
 
       if (vm && vm.status === "running") {
         try {
-          // Stop the VM on Fly.io
+          // Stop the VM on DigitalOcean
           await ctx.runAction(internal.vms.stopInternal, { vmId: vm._id });
           console.log(`Stopped VM for expired subscription: ${sub._id}`);
         } catch (err) {

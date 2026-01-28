@@ -9,7 +9,7 @@
 [![Live Demo](https://img.shields.io/badge/demo-ordo.sh-D97706?style=for-the-badge)](https://ordo.sh)
 [![Built with Convex](https://img.shields.io/badge/backend-Convex-8B5CF6?style=for-the-badge)](https://convex.dev)
 [![Powered by Claude](https://img.shields.io/badge/AI-Claude%20Opus-CC785C?style=for-the-badge)](https://anthropic.com)
-[![Deploy on Fly.io](https://img.shields.io/badge/hosting-Fly.io-7C3AED?style=for-the-badge)](https://fly.io)
+[![Deploy on DigitalOcean](https://img.shields.io/badge/hosting-DigitalOcean-0080FF?style=for-the-badge)](https://digitalocean.com)
 
 <br />
 
@@ -72,7 +72,7 @@ Ordo gives you a **dedicated cloud instance** running 24/7. Same power, zero har
 | **Frontend** | React 19, Vite, TypeScript |
 | **Backend** | [Convex](https://convex.dev) (real-time database + serverless functions) |
 | **AI** | [Claude Opus](https://anthropic.com) by Anthropic |
-| **VM Hosting** | [Fly.io](https://fly.io) (dedicated instances per user) |
+| **VM Hosting** | [DigitalOcean](https://digitalocean.com) (dedicated droplets per user) |
 | **Payments** | Solana (SOL) via wallet adapter |
 | **Bot Platforms** | Telegram, Discord (WhatsApp & Slack coming soon) |
 
@@ -92,7 +92,7 @@ Ordo gives you a **dedicated cloud instance** running 24/7. Same power, zero har
 │                           │                                   │
 │                           ▼                                   │
 │              ┌────────────────────────┐                      │
-│              │    Fly.io Machine      │                      │
+│              │  DigitalOcean Droplet  │                      │
 │              │  (Dedicated per user)  │                      │
 │              │                        │                      │
 │              │   ┌────────────────┐   │                      │
@@ -118,7 +118,7 @@ Ordo gives you a **dedicated cloud instance** running 24/7. Same power, zero har
 
 - [Bun](https://bun.sh) (v1.0+)
 - [Convex](https://convex.dev) account
-- [Fly.io](https://fly.io) account
+- [DigitalOcean](https://digitalocean.com) account
 
 ### Setup
 
@@ -149,8 +149,8 @@ GOOGLE_API_KEY=...
 # Solana RPC
 VITE_SOLANA_RPC_URL=https://mainnet.helius-rpc.com/?api-key=...
 
-# Fly.io (for VM provisioning)
-FLY_API_TOKEN=...
+# DigitalOcean (for VM provisioning)
+DIGITALOCEAN_API_TOKEN=...
 
 # Bot image (set in Convex dashboard)
 BOT_IMAGE=ghcr.io/ordodotsh/ordo-bot:latest
@@ -197,7 +197,7 @@ ordo.sh/
 ## Roadmap
 
 - [x] Solana wallet authentication
-- [x] Fly.io VM provisioning
+- [x] DigitalOcean VM provisioning
 - [x] Telegram bot integration
 - [x] Discord bot integration
 - [x] WhatsApp integration

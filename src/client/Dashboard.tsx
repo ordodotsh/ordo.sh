@@ -884,7 +884,8 @@ export function Dashboard() {
                     />
                     <div style={styles.provisioningText}>
                       <span style={styles.provisioningTitle}>Setting up your Ordo...</span>
-                      <span style={styles.provisioningSubtitle}>This usually takes 30-60 seconds</span>
+                      <span style={styles.provisioningSubtitle}>This usually takes 3-5 minutes</span>
+                      <span style={{...styles.provisioningSubtitle, fontSize: '12px', marginTop: '4px', opacity: 0.7}}>Installing Docker and pulling the bot image...</span>
                     </div>
                   </div>
                 ) : (
@@ -1227,6 +1228,20 @@ export function Dashboard() {
                         allow="clipboard-read; clipboard-write"
                       />
                     ))}
+                    {/* Loading overlay - shown when terminal might still be starting */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '10px',
+                      left: '10px',
+                      background: 'rgba(0,0,0,0.8)',
+                      color: '#aaa',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      pointerEvents: 'none',
+                    }}>
+                      💡 Blank screen? Terminal takes 3-5 min to start after provisioning. Refresh to retry.
+                    </div>
                   </div>
                   <div style={styles.terminalFooter}>
                     <div style={styles.commandsSection}>

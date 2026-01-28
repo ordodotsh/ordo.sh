@@ -94,9 +94,10 @@ systemctl start docker
 sleep 5
 docker version
 
-# Create data directories
+# Create data directories with correct ownership (UID 1000 = dev user in container)
 mkdir -p /opt/ordo/data/.clawdbot
 mkdir -p /opt/ordo/data/workspace
+chown -R 1000:1000 /opt/ordo/data
 
 # Pull and run the ordo-bot container
 # The container has Chrome, Xvfb, ttyd, and clawdbot all built-in

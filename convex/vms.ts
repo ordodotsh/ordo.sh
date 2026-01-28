@@ -178,9 +178,15 @@ export const provision = action({
       ORDO_AUTO_CONFIG: "true",
     };
 
-    // Add Anthropic API key if set
+    // Add LLM provider API keys if set
     if (credentials?.anthropicKey) {
       envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
+    }
+    if (credentials?.openaiKey) {
+      envVars.OPENAI_API_KEY = credentials.openaiKey;
+    }
+    if (credentials?.googleKey) {
+      envVars.GOOGLE_API_KEY = credentials.googleKey;
     }
 
     // Add channel tokens and configs
@@ -487,6 +493,12 @@ export const provisionInternal = internalAction({
 
     if (credentials?.anthropicKey) {
       envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
+    }
+    if (credentials?.openaiKey) {
+      envVars.OPENAI_API_KEY = credentials.openaiKey;
+    }
+    if (credentials?.googleKey) {
+      envVars.GOOGLE_API_KEY = credentials.googleKey;
     }
 
     for (const conn of connections) {

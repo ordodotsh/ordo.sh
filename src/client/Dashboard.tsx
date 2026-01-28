@@ -235,13 +235,17 @@ export function Dashboard() {
 
   const { pay, paying } = usePayment()
   const saveAnthropicKey = useMutation(api.credentials.saveAnthropicKey)
+  const saveOpenaiKey = useMutation(api.credentials.saveOpenaiKey)
+  const saveGoogleKey = useMutation(api.credentials.saveGoogleKey)
   const saveConnection = useMutation(api.connections.save)
   const removeConnection = useMutation(api.connections.remove)
   const provisionVm = useAction(api.vms.provision)
   const retryProvision = useAction(api.vms.retry)
 
   const [anthropicKey, setAnthropicKey] = useState('')
-  const [savingKey, setSavingKey] = useState(false)
+  const [openaiKey, setOpenaiKey] = useState('')
+  const [googleKey, setGoogleKey] = useState('')
+  const [savingKey, setSavingKey] = useState<string | false>(false)
   const [activeChannel, setActiveChannel] = useState<string | null>(null)
   const [channelToken, setChannelToken] = useState('')
   const [channelConfig, setChannelConfig] = useState<Record<string, string>>({})
@@ -309,11 +313,43 @@ export function Dashboard() {
 
   const handleSaveAnthropicKey = async () => {
     if (!dashboard?.user || !anthropicKey) return
-    setSavingKey(true)
+    setSavingKey('anthropic')
     try {
       await saveAnthropicKey({ userId: dashboard.user._id, anthropicKey })
-      toast.success('API key saved')
+      toast.success('Anthropic API key saved')
       setAnthropicKey('')
+    } catch (err) {
+      toast.error('Failed to save', {
+        description: err instanceof Error ? err.message : 'Invalid key format',
+      })
+    } finally {
+      setSavingKey(false)
+    }
+  }
+
+  const handleSaveOpenaiKey = async () => {
+    if (!dashboard?.user || !openaiKey) return
+    setSavingKey('openai')
+    try {
+      await saveOpenaiKey({ userId: dashboard.user._id, openaiKey })
+      toast.success('OpenAI API key saved')
+      setOpenaiKey('')
+    } catch (err) {
+      toast.error('Failed to save', {
+        description: err instanceof Error ? err.message : 'Invalid key format',
+      })
+    } finally {
+      setSavingKey(false)
+    }
+  }
+
+  const handleSaveGoogleKey = async () => {
+    if (!dashboard?.user || !googleKey) return
+    setSavingKey('google')
+    try {
+      await saveGoogleKey({ userId: dashboard.user._id, googleKey })
+      toast.success('Google API key saved')
+      setGoogleKey('')
     } catch (err) {
       toast.error('Failed to save', {
         description: err instanceof Error ? err.message : 'Invalid key format',
@@ -399,7 +435,7 @@ export function Dashboard() {
   }
 
   const hasSubscription = !!dashboard?.subscription
-  const hasApiKey = !!credentials?.hasAnthropicKey
+  const hasApiKey = !!(credentials?.hasAnthropicKey || credentials?.hasOpenaiKey || credentials?.hasGoogleKey)
   const hasChannels = (connections?.length || 0) > 0
   const hasVm = !!dashboard?.vm
   const vmRunning = dashboard?.vm?.status === 'running'
@@ -518,7 +554,7 @@ export function Dashboard() {
                 )}
               </div>
 
-              {/* Step 2: API Key */}
+              {/* Step 2: LLM API Keys */}
               <div className="dashboard-card" style={{
                 ...styles.card,
                 opacity: currentStep >= 2 ? 1 : 0.4,
@@ -527,27 +563,27 @@ export function Dashboard() {
               }}>
                 <div className="card-header" style={styles.cardHeader}>
                   <span className="step-badge" style={styles.stepBadge}>2</span>
-                  <h3 className="card-title" style={styles.cardTitle}>Anthropic API Key</h3>
+                  <h3 className="card-title" style={styles.cardTitle}>LLM API Keys</h3>
                   {hasApiKey && <span style={styles.checkMark}>✓</span>}
                 </div>
-                {hasApiKey ? (
-                  <div style={styles.completedInfo}>
-                    <code style={styles.keyPreview}>{credentials?.anthropicKeyPreview}</code>
-                    <button
-                      style={styles.changeBtn}
-                      onClick={() => setAnthropicKey('sk-ant-')}
-                    >
-                      Change
-                    </button>
+                <p style={{ ...styles.cardDesc, marginBottom: 16 }}>
+                  Add at least one API key. More providers = more model choices.
+                </p>
+
+                {/* Anthropic */}
+                <div style={styles.apiKeySection}>
+                  <div style={styles.apiKeyHeader}>
+                    <span style={styles.apiKeyProvider}>Anthropic</span>
+                    <span style={styles.apiKeyModels}>Claude Opus, Sonnet, Haiku</span>
                   </div>
-                ) : (
-                  <div>
-                    <p style={styles.cardDesc}>
-                      Get your key from{' '}
-                      <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" style={styles.link}>
-                        console.anthropic.com
-                      </a>
-                    </p>
+                  {credentials?.hasAnthropicKey ? (
+                    <div style={styles.completedInfo}>
+                      <code style={styles.keyPreview}>{credentials?.anthropicKeyPreview}</code>
+                      <button style={styles.changeBtn} onClick={() => setAnthropicKey('sk-ant-')}>
+                        Change
+                      </button>
+                    </div>
+                  ) : (
                     <div style={styles.inputGroup}>
                       <input
                         type="password"
@@ -557,18 +593,90 @@ export function Dashboard() {
                         style={styles.input}
                       />
                       <button
-                        style={{
-                          ...styles.saveBtn,
-                          opacity: !anthropicKey || savingKey ? 0.7 : 1,
-                        }}
+                        style={{ ...styles.saveBtn, opacity: !anthropicKey || savingKey ? 0.7 : 1 }}
                         onClick={handleSaveAnthropicKey}
-                        disabled={!anthropicKey || savingKey}
+                        disabled={!anthropicKey || !!savingKey}
                       >
-                        {savingKey ? '...' : 'Save'}
+                        {savingKey === 'anthropic' ? '...' : 'Save'}
                       </button>
                     </div>
+                  )}
+                  <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" style={styles.apiKeyLink}>
+                    Get key from console.anthropic.com
+                  </a>
+                </div>
+
+                {/* OpenAI */}
+                <div style={styles.apiKeySection}>
+                  <div style={styles.apiKeyHeader}>
+                    <span style={styles.apiKeyProvider}>OpenAI</span>
+                    <span style={styles.apiKeyModels}>GPT-4o, GPT-4o-mini, o1, o3-mini</span>
                   </div>
-                )}
+                  {credentials?.hasOpenaiKey ? (
+                    <div style={styles.completedInfo}>
+                      <code style={styles.keyPreview}>{credentials?.openaiKeyPreview}</code>
+                      <button style={styles.changeBtn} onClick={() => setOpenaiKey('sk-')}>
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={styles.inputGroup}>
+                      <input
+                        type="password"
+                        placeholder="sk-..."
+                        value={openaiKey}
+                        onChange={(e) => setOpenaiKey(e.target.value)}
+                        style={styles.input}
+                      />
+                      <button
+                        style={{ ...styles.saveBtn, opacity: !openaiKey || savingKey ? 0.7 : 1 }}
+                        onClick={handleSaveOpenaiKey}
+                        disabled={!openaiKey || !!savingKey}
+                      >
+                        {savingKey === 'openai' ? '...' : 'Save'}
+                      </button>
+                    </div>
+                  )}
+                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" style={styles.apiKeyLink}>
+                    Get key from platform.openai.com
+                  </a>
+                </div>
+
+                {/* Google */}
+                <div style={{ ...styles.apiKeySection, borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
+                  <div style={styles.apiKeyHeader}>
+                    <span style={styles.apiKeyProvider}>Google</span>
+                    <span style={styles.apiKeyModels}>Gemini 2.0 Flash, Gemini 1.5 Pro</span>
+                  </div>
+                  {credentials?.hasGoogleKey ? (
+                    <div style={styles.completedInfo}>
+                      <code style={styles.keyPreview}>{credentials?.googleKeyPreview}</code>
+                      <button style={styles.changeBtn} onClick={() => setGoogleKey('AIza')}>
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={styles.inputGroup}>
+                      <input
+                        type="password"
+                        placeholder="AIza..."
+                        value={googleKey}
+                        onChange={(e) => setGoogleKey(e.target.value)}
+                        style={styles.input}
+                      />
+                      <button
+                        style={{ ...styles.saveBtn, opacity: !googleKey || savingKey ? 0.7 : 1 }}
+                        onClick={handleSaveGoogleKey}
+                        disabled={!googleKey || !!savingKey}
+                      >
+                        {savingKey === 'google' ? '...' : 'Save'}
+                      </button>
+                    </div>
+                  )}
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style={styles.apiKeyLink}>
+                    Get key from aistudio.google.com
+                  </a>
+                </div>
               </div>
 
               {/* Step 3: Channels */}
@@ -1541,6 +1649,36 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     border: 'none',
     cursor: 'pointer',
     textDecoration: 'underline',
+  },
+  apiKeySection: {
+    padding: '16px 0',
+    borderBottom: `1px solid ${c.border}`,
+    marginBottom: 16,
+  },
+  apiKeyHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  apiKeyProvider: {
+    fontSize: 15,
+    fontWeight: 600,
+    color: c.text,
+  },
+  apiKeyModels: {
+    fontSize: 12,
+    color: c.textMuted,
+    background: c.bgAlt,
+    padding: '2px 8px',
+    borderRadius: 4,
+  },
+  apiKeyLink: {
+    display: 'block',
+    fontSize: 12,
+    color: c.textMuted,
+    marginTop: 8,
+    textDecoration: 'none',
   },
   inputGroup: {
     display: 'flex',

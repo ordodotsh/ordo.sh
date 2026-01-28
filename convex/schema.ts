@@ -47,6 +47,8 @@ export default defineSchema({
   credentials: defineTable({
     userId: v.id("users"),
     anthropicKey: v.optional(v.string()),
+    openaiKey: v.optional(v.string()),
+    googleKey: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
 

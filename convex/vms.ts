@@ -126,6 +126,7 @@ services:
     network_mode: host
     depends_on:
       - xvfb
+    command: clawdbot gateway
   
   xvfb:
     image: selenium/standalone-chrome:latest
@@ -146,11 +147,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 COMPOSEEOF
-  
-  # Pull images and start
+
+  # Pull images and start (gateway runs automatically as container's main process)
   - cd /opt/ordo && docker-compose pull
   - cd /opt/ordo && docker-compose up -d
-  
+
   # Set up firewall (allow SSH, HTTP, HTTPS, ttyd)
   - ufw allow 22/tcp
   - ufw allow 80/tcp

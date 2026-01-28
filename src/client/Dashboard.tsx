@@ -249,6 +249,10 @@ export function Dashboard() {
   const [provisioning, setProvisioning] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [showFaq, setShowFaq] = useState(false)
+  const [terminalTabs, setTerminalTabs] = useState<{ id: number; name: string }[]>([
+    { id: 1, name: 'Terminal 1' }
+  ])
+  const [activeTerminalTab, setActiveTerminalTab] = useState(1)
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ordo-theme')
@@ -286,6 +290,21 @@ export function Dashboard() {
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
+
+  const addTerminalTab = () => {
+    const newId = Math.max(...terminalTabs.map(t => t.id)) + 1
+    setTerminalTabs([...terminalTabs, { id: newId, name: `Terminal ${newId}` }])
+    setActiveTerminalTab(newId)
+  }
+
+  const closeTerminalTab = (id: number) => {
+    if (terminalTabs.length === 1) return // Keep at least one tab
+    const newTabs = terminalTabs.filter(t => t.id !== id)
+    setTerminalTabs(newTabs)
+    if (activeTerminalTab === id) {
+      setActiveTerminalTab(newTabs[newTabs.length - 1].id)
+    }
   }
 
   const handleSaveAnthropicKey = async () => {
@@ -1045,18 +1064,56 @@ export function Dashboard() {
                 <div style={styles.terminalCard}>
                   <div style={styles.terminalHeader}>
                     <div style={styles.terminalHeaderLeft}>
-                      <h3 style={styles.terminalTitle}>Terminal</h3>
+                      <div style={styles.terminalTabs}>
+                        {terminalTabs.map((tab) => (
+                          <div
+                            key={tab.id}
+                            style={{
+                              ...styles.terminalTab,
+                              ...(activeTerminalTab === tab.id ? styles.terminalTabActive : {}),
+                            }}
+                            onClick={() => setActiveTerminalTab(tab.id)}
+                          >
+                            <span>{tab.name}</span>
+                            {terminalTabs.length > 1 && (
+                              <button
+                                style={styles.terminalTabClose}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  closeTerminalTab(tab.id)
+                                }}
+                                title="Close terminal"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          style={styles.terminalTabAdd}
+                          onClick={addTerminalTab}
+                          title="New terminal"
+                        >
+                          +
+                        </button>
+                      </div>
                       <span style={styles.terminalBadge}>Advanced</span>
                     </div>
                     <span style={styles.terminalHint}>For debugging only - everything is auto-configured!</span>
                   </div>
                   <div className="terminal-container" style={styles.terminalContainer}>
-                    <iframe
-                      src={dashboard.vm.ip}
-                      style={styles.terminalIframe}
-                      title="Ordo Terminal"
-                      allow="clipboard-read; clipboard-write"
-                    />
+                    {terminalTabs.map((tab) => (
+                      <iframe
+                        key={tab.id}
+                        src={dashboard?.vm?.ip || ''}
+                        style={{
+                          ...styles.terminalIframe,
+                          display: activeTerminalTab === tab.id ? 'block' : 'none',
+                        }}
+                        title={`Ordo ${tab.name}`}
+                        allow="clipboard-read; clipboard-write"
+                      />
+                    ))}
                   </div>
                   <div style={styles.terminalFooter}>
                     <div style={styles.commandsSection}>
@@ -2094,6 +2151,61 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     display: 'flex',
     alignItems: 'center',
     gap: 10,
+  },
+  terminalTabs: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+  },
+  terminalTab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '6px 12px',
+    background: c.bgAlt,
+    border: `1px solid ${c.border}`,
+    borderRadius: 6,
+    fontSize: 13,
+    fontWeight: 500,
+    color: c.textSecondary,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  terminalTabActive: {
+    background: c.cardBg,
+    color: c.text,
+    borderColor: c.accent,
+  },
+  terminalTabClose: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 16,
+    height: 16,
+    padding: 0,
+    background: 'transparent',
+    border: 'none',
+    borderRadius: 3,
+    fontSize: 14,
+    color: c.textMuted,
+    cursor: 'pointer',
+    lineHeight: 1,
+    transition: 'all 0.15s',
+  },
+  terminalTabAdd: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+    padding: 0,
+    background: 'transparent',
+    border: `1px dashed ${c.border}`,
+    borderRadius: 6,
+    fontSize: 18,
+    color: c.textMuted,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
   },
   terminalTitle: {
     fontSize: 16,

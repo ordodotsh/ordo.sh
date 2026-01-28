@@ -23,11 +23,11 @@ export default defineSchema({
     expiresAt: v.optional(v.number()),
   }).index("by_user", ["userId"]),
 
-  // VMs - one per user, running clawdbot
+  // VMs - one per user, running clawdbot on Hetzner Cloud
   vms: defineTable({
     userId: v.id("users"),
-    flyAppName: v.string(),
-    flyMachineId: v.optional(v.string()),
+    serverName: v.string(),           // Hetzner server name
+    hetznerServerId: v.optional(v.number()), // Hetzner server ID
     status: v.union(
       v.literal("provisioning"),
       v.literal("running"),
@@ -35,13 +35,13 @@ export default defineSchema({
       v.literal("failed"),
       v.literal("deleted")
     ),
-    region: v.string(),
-    ip: v.optional(v.string()),
+    region: v.string(),               // Hetzner location (nbg1, fsn1, hel1, etc.)
+    ip: v.optional(v.string()),       // Public IPv4
     createdAt: v.number(),
     error: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
-    .index("by_fly_app", ["flyAppName"]),
+    .index("by_server_name", ["serverName"]),
 
   // User credentials - API keys for clawdbot
   credentials: defineTable({

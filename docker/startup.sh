@@ -1,6 +1,7 @@
 #!/bin/bash
 # Ordo.sh - Auto-configuration startup script
-# This script auto-configures clawdbot based on environment variables
+# This script auto-configures Moltbot (clawdbot) based on environment variables
+# Docs: https://docs.clawd.bot
 
 # Don't exit on error - we want ttyd to start even if other things fail
 set +e

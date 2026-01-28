@@ -1,4 +1,5 @@
-# Ordo.sh - Cloud Clawdbot Environment
+# Ordo.sh - Cloud Moltbot Environment
+# Moltbot (formerly Clawdbot) - https://clawd.bot / https://docs.clawd.bot
 # Container: ghcr.io/ordodotsh/ordo-bot
 FROM node:22-alpine
 

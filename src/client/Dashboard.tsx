@@ -805,47 +805,105 @@ export function Dashboard() {
                       Active
                     </div>
                   </div>
-                  
-                  {/* Quick Actions */}
-                  <div style={styles.quickActionsGrid}>
+
+                  {/* Platform-specific instructions */}
+                  <div style={styles.platformInstructions}>
                     {connections?.map((conn: { _id: string; platform: string }) => {
-                      const platform = PLATFORMS.find(p => p.id === conn.platform)
-                      if (!platform) return null
-                      
-                      const actionLinks: Record<string, { url: string; text: string }> = {
-                        telegram: { url: 'https://t.me/', text: 'Open Telegram' },
-                        discord: { url: 'https://discord.com/app', text: 'Open Discord' },
-                        slack: { url: 'https://slack.com/', text: 'Open Slack' },
-                        whatsapp: { url: 'https://web.whatsapp.com/', text: 'Open WhatsApp' },
+                      const platformGuides: Record<string, { title: string; steps: string[]; link: string; linkText: string }> = {
+                        telegram: {
+                          title: '📱 Telegram Bot',
+                          steps: [
+                            '1. Open Telegram on your phone or desktop',
+                            '2. Search for your bot username (the one you created with @BotFather)',
+                            '3. Click "Start" or send any message like "Hello!"',
+                            '4. Your AI will respond - ask it anything!',
+                          ],
+                          link: 'https://telegram.org/',
+                          linkText: 'Open Telegram',
+                        },
+                        telegram_user: {
+                          title: '📱 Telegram (Full Access)',
+                          steps: [
+                            '1. Your AI can now read all your Telegram chats',
+                            '2. It can message anyone on your behalf',
+                            '3. Use responsibly - this has full account access',
+                          ],
+                          link: 'https://telegram.org/',
+                          linkText: 'Open Telegram',
+                        },
+                        discord: {
+                          title: '🎮 Discord Bot',
+                          steps: [
+                            '1. Go to Discord Developer Portal and get your bot\'s OAuth2 URL',
+                            '2. Invite the bot to your server using that URL',
+                            '3. In any channel, mention your bot: @YourBotName hello!',
+                            '4. The bot will respond in the channel',
+                          ],
+                          link: 'https://discord.com/developers/applications',
+                          linkText: 'Developer Portal',
+                        },
+                        slack: {
+                          title: '💼 Slack Bot',
+                          steps: [
+                            '1. Install your Slack app to your workspace',
+                            '2. Find the bot in your DMs or invite it to a channel',
+                            '3. Send a direct message or @mention the bot',
+                            '4. The bot will respond to your messages',
+                          ],
+                          link: 'https://slack.com/',
+                          linkText: 'Open Slack',
+                        },
+                        whatsapp: {
+                          title: '💬 WhatsApp',
+                          steps: [
+                            '1. In the terminal below, run: ordo channels login',
+                            '2. Scan the QR code with WhatsApp on your phone',
+                            '3. Once connected, message the WhatsApp number',
+                            '4. Your AI will respond to messages',
+                          ],
+                          link: 'https://web.whatsapp.com/',
+                          linkText: 'WhatsApp Web',
+                        },
+                        email: {
+                          title: '📧 Email',
+                          steps: [
+                            '1. Your AI can now read incoming emails',
+                            '2. It will respond to emails on your behalf',
+                            '3. Check your inbox for AI-generated replies',
+                          ],
+                          link: 'https://mail.google.com/',
+                          linkText: 'Open Gmail',
+                        },
                       }
                       
-                      const action = actionLinks[conn.platform]
-                      if (!action) return null
+                      const guide = platformGuides[conn.platform]
+                      if (!guide) return null
                       
                       return (
-                        <a
-                          key={conn._id}
-                          href={action.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={styles.quickActionBtn}
-                        >
-                          <img src={platform.icon} alt={platform.name} style={{ width: 20, height: 20 }} />
-                          <span>{action.text}</span>
-                          <span style={styles.quickActionArrow}>→</span>
-                        </a>
+                        <div key={conn._id} style={styles.platformGuideCard}>
+                          <h4 style={styles.platformGuideTitle}>{guide.title}</h4>
+                          <div style={styles.platformGuideSteps}>
+                            {guide.steps.map((step, i) => (
+                              <p key={i} style={styles.platformGuideStep}>{step}</p>
+                            ))}
+                          </div>
+                          <a
+                            href={guide.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={styles.platformGuideLink}
+                          >
+                            {guide.linkText} →
+                          </a>
+                        </div>
                       )
                     })}
                   </div>
                   
                   <div style={styles.botStatusInfo}>
                     <div style={styles.infoItem}>
-                      <span style={styles.infoLabel}>Next step:</span>
-                      <span style={styles.infoValue}>Open your messaging app and send a message to your bot. Try "Hello!" or ask it anything.</span>
-                    </div>
-                    <div style={styles.infoItem}>
                       <span style={styles.infoLabel}>Pro tip:</span>
-                      <span style={styles.infoValue}>Your bot uses Claude Opus - it can help with coding, research, writing, and more!</span>
+                      <span style={styles.infoValue}>Your bot uses Claude - it can help with coding, research, writing, and more!</span>
                     </div>
                   </div>
                 </div>
@@ -1604,6 +1662,47 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     borderRadius: '50%',
     background: c.green,
     animation: 'pulse 2s infinite',
+  },
+  platformInstructions: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: 16,
+    marginBottom: 16,
+  },
+  platformGuideCard: {
+    padding: 20,
+    background: c.bgAlt,
+    borderRadius: 12,
+    border: `1px solid ${c.border}`,
+  },
+  platformGuideTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: c.text,
+    margin: 0,
+    marginBottom: 12,
+  },
+  platformGuideSteps: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    marginBottom: 16,
+  },
+  platformGuideStep: {
+    fontSize: 14,
+    color: c.textSecondary,
+    margin: 0,
+    lineHeight: 1.5,
+    paddingLeft: 4,
+  },
+  platformGuideLink: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    fontSize: 14,
+    fontWeight: 600,
+    color: c.accent,
+    textDecoration: 'none',
   },
   quickActionsGrid: {
     display: 'flex',

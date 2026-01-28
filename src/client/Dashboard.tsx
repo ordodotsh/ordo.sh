@@ -1209,6 +1209,11 @@ export function Dashboard() {
                     </div>
                     <span style={styles.terminalHint}>For debugging only - everything is auto-configured!</span>
                   </div>
+                  <div style={styles.terminalShortcutsHint}>
+                    <span style={styles.shortcutKey}>Ctrl+Shift+C</span> to copy
+                    <span style={styles.shortcutDivider}>•</span>
+                    <span style={styles.shortcutKey}>Ctrl+Shift+V</span> to paste
+                  </div>
                   <div className="terminal-container" style={styles.terminalContainer}>
                     {terminalTabs.map((tab) => (
                       <iframe
@@ -2362,6 +2367,29 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
   terminalHint: {
     fontSize: 12,
     color: c.textMuted,
+  },
+  terminalShortcutsHint: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: '8px 16px',
+    background: 'rgba(255, 255, 255, 0.03)',
+    borderBottom: `1px solid ${c.border}`,
+    fontSize: 12,
+    color: c.textMuted,
+  },
+  shortcutKey: {
+    padding: '2px 6px',
+    background: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    fontSize: 11,
+    color: c.textSecondary,
+  },
+  shortcutDivider: {
+    color: c.textMuted,
+    opacity: 0.5,
   },
   terminalFooter: {
     padding: '20px',

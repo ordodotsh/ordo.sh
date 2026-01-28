@@ -806,12 +806,65 @@ export function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Platform-specific instructions */}
+                  {/* Step 1: Start the bot */}
+                  <div style={styles.gettingStartedCard}>
+                    <h4 style={styles.gettingStartedTitle}>🚀 Step 1: Start Your Bot</h4>
+                    <p style={styles.gettingStartedDesc}>Run these commands in the terminal below:</p>
+                    <div style={styles.commandSteps}>
+                      <div style={styles.commandStepItem}>
+                        <span style={styles.commandStepNum}>1</span>
+                        <div style={styles.commandStepContent}>
+                          <code 
+                            style={styles.commandStepCode}
+                            onClick={() => {
+                              navigator.clipboard.writeText('ordo status')
+                              toast.success('Copied!', { description: 'ordo status' })
+                            }}
+                          >
+                            ordo status
+                          </code>
+                          <span style={styles.commandStepDesc}>Check if bot is running (click to copy)</span>
+                        </div>
+                      </div>
+                      <div style={styles.commandStepItem}>
+                        <span style={styles.commandStepNum}>2</span>
+                        <div style={styles.commandStepContent}>
+                          <code 
+                            style={styles.commandStepCode}
+                            onClick={() => {
+                              navigator.clipboard.writeText('ordo doctor --fix')
+                              toast.success('Copied!', { description: 'ordo doctor --fix' })
+                            }}
+                          >
+                            ordo doctor --fix
+                          </code>
+                          <span style={styles.commandStepDesc}>Auto-fix any issues and start the bot</span>
+                        </div>
+                      </div>
+                      <div style={styles.commandStepItem}>
+                        <span style={styles.commandStepNum}>3</span>
+                        <div style={styles.commandStepContent}>
+                          <code 
+                            style={styles.commandStepCode}
+                            onClick={() => {
+                              navigator.clipboard.writeText('ordo status')
+                              toast.success('Copied!', { description: 'ordo status' })
+                            }}
+                          >
+                            ordo status
+                          </code>
+                          <span style={styles.commandStepDesc}>Verify bot shows "Gateway: running"</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Platform-specific instructions */}
                   <div style={styles.platformInstructions}>
                     {connections?.map((conn: { _id: string; platform: string }) => {
                       const platformGuides: Record<string, { title: string; steps: string[]; link: string; linkText: string }> = {
                         telegram: {
-                          title: '📱 Telegram Bot',
+                          title: '📱 Step 2: Chat on Telegram',
                           steps: [
                             '1. Open Telegram on your phone or desktop',
                             '2. Search for your bot username (the one you created with @BotFather)',
@@ -822,7 +875,7 @@ export function Dashboard() {
                           linkText: 'Open Telegram',
                         },
                         telegram_user: {
-                          title: '📱 Telegram (Full Access)',
+                          title: '📱 Step 2: Telegram (Full Access)',
                           steps: [
                             '1. Your AI can now read all your Telegram chats',
                             '2. It can message anyone on your behalf',
@@ -832,7 +885,7 @@ export function Dashboard() {
                           linkText: 'Open Telegram',
                         },
                         discord: {
-                          title: '🎮 Discord Bot',
+                          title: '🎮 Step 2: Chat on Discord',
                           steps: [
                             '1. Go to Discord Developer Portal and get your bot\'s OAuth2 URL',
                             '2. Invite the bot to your server using that URL',
@@ -843,7 +896,7 @@ export function Dashboard() {
                           linkText: 'Developer Portal',
                         },
                         slack: {
-                          title: '💼 Slack Bot',
+                          title: '💼 Step 2: Chat on Slack',
                           steps: [
                             '1. Install your Slack app to your workspace',
                             '2. Find the bot in your DMs or invite it to a channel',
@@ -854,9 +907,9 @@ export function Dashboard() {
                           linkText: 'Open Slack',
                         },
                         whatsapp: {
-                          title: '💬 WhatsApp',
+                          title: '💬 Step 2: Chat on WhatsApp',
                           steps: [
-                            '1. In the terminal below, run: ordo channels login',
+                            '1. In the terminal, run: ordo channels login',
                             '2. Scan the QR code with WhatsApp on your phone',
                             '3. Once connected, message the WhatsApp number',
                             '4. Your AI will respond to messages',
@@ -865,7 +918,7 @@ export function Dashboard() {
                           linkText: 'WhatsApp Web',
                         },
                         email: {
-                          title: '📧 Email',
+                          title: '📧 Step 2: Email',
                           steps: [
                             '1. Your AI can now read incoming emails',
                             '2. It will respond to emails on your behalf',
@@ -1662,6 +1715,70 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     borderRadius: '50%',
     background: c.green,
     animation: 'pulse 2s infinite',
+  },
+  gettingStartedCard: {
+    padding: 20,
+    background: `linear-gradient(135deg, ${c.accent}15 0%, ${c.green}15 100%)`,
+    borderRadius: 12,
+    border: `2px solid ${c.accent}`,
+    marginBottom: 16,
+  },
+  gettingStartedTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: c.text,
+    margin: 0,
+    marginBottom: 8,
+  },
+  gettingStartedDesc: {
+    fontSize: 14,
+    color: c.textSecondary,
+    margin: 0,
+    marginBottom: 16,
+  },
+  commandSteps: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  commandStepItem: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  commandStepNum: {
+    width: 28,
+    height: 28,
+    borderRadius: '50%',
+    background: c.accent,
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 14,
+    fontWeight: 600,
+    flexShrink: 0,
+  },
+  commandStepContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+  },
+  commandStepCode: {
+    fontFamily: 'monospace',
+    fontSize: 15,
+    fontWeight: 600,
+    color: c.accent,
+    background: c.cardBg,
+    padding: '8px 14px',
+    borderRadius: 8,
+    border: `1px solid ${c.border}`,
+    cursor: 'pointer',
+    display: 'inline-block',
+  },
+  commandStepDesc: {
+    fontSize: 13,
+    color: c.textMuted,
   },
   platformInstructions: {
     display: 'grid',

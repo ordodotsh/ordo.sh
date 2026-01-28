@@ -1027,15 +1027,41 @@ export function Dashboard() {
                   </div>
                   <div style={styles.terminalFooter}>
                     <div style={styles.commandsSection}>
-                      <h4 style={styles.commandsSectionTitle}>Quick Commands (click to copy)</h4>
+                      <h4 style={styles.commandsSectionTitle}>Essential Commands (click to copy)</h4>
                       <div style={styles.commandsGrid}>
                         {[
-                          { cmd: 'ordo status', label: 'ordo status', desc: 'Check if your bot is running' },
-                          { cmd: 'ordo doctor', label: 'ordo doctor', desc: 'Diagnose and fix issues' },
+                          { cmd: 'ordo status', label: 'ordo status', desc: '📊 Check bot & channel status', category: 'essential' },
+                          { cmd: 'ordo doctor --fix', label: 'ordo doctor --fix', desc: '🔧 Fix issues automatically', category: 'essential' },
+                          { cmd: 'ordo gateway', label: 'ordo gateway', desc: '🚀 START THE BOT (run this!)', category: 'essential', highlight: true },
+                        ].map((item) => (
+                          <button
+                            key={item.cmd}
+                            style={{
+                              ...styles.commandCard,
+                              ...(item.highlight ? styles.commandCardHighlight : {}),
+                            }}
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.cmd)
+                              toast.success('Copied to clipboard', { description: item.cmd })
+                            }}
+                            title={`Copy: ${item.cmd}`}
+                          >
+                            <code style={{
+                              ...styles.commandCode,
+                              ...(item.highlight ? styles.commandCodeHighlight : {}),
+                            }}>{item.label}</code>
+                            <span style={styles.commandDesc}>{item.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                      
+                      <h4 style={{ ...styles.commandsSectionTitle, marginTop: 16 }}>Other Useful Commands</h4>
+                      <div style={styles.commandsGrid}>
+                        {[
+                          { cmd: 'ordo gateway --verbose', label: 'ordo gateway --verbose', desc: 'Start with detailed logging' },
+                          { cmd: 'ordo channels login', label: 'ordo channels login', desc: 'WhatsApp QR code login' },
+                          { cmd: 'tail -f ~/.clawdbot/clawdbot.log', label: 'tail -f logs', desc: 'Watch live bot activity' },
                           { cmd: 'ordo --help', label: 'ordo --help', desc: 'See all available commands' },
-                          { cmd: 'tail -f ~/.clawdbot/clawdbot.log', label: 'View logs', desc: 'Watch real-time bot activity' },
-                          { cmd: 'ordo gateway --port 18789 --verbose', label: 'Start gateway', desc: 'Manually start the bot gateway' },
-                          { cmd: 'ordo channels login', label: 'Channel login', desc: 'Setup WhatsApp QR login' },
                         ].map((item) => (
                           <button
                             key={item.cmd}
@@ -2055,11 +2081,19 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
     transition: 'all 0.15s',
     textAlign: 'left',
   },
+  commandCardHighlight: {
+    background: `linear-gradient(135deg, ${c.green}20 0%, ${c.accent}20 100%)`,
+    border: `2px solid ${c.green}`,
+  },
   commandCode: {
     fontFamily: 'monospace',
     fontSize: 13,
     fontWeight: 600,
     color: c.accent,
+  },
+  commandCodeHighlight: {
+    color: c.green,
+    fontSize: 14,
   },
   commandDesc: {
     fontSize: 12,

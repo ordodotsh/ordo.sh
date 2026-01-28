@@ -808,26 +808,11 @@ export function Dashboard() {
 
                   {/* Step 1: Start the bot */}
                   <div style={styles.gettingStartedCard}>
-                    <h4 style={styles.gettingStartedTitle}>🚀 Step 1: Start Your Bot</h4>
-                    <p style={styles.gettingStartedDesc}>Run these commands in the terminal below:</p>
+                    <h4 style={styles.gettingStartedTitle}>🚀 Getting Started</h4>
+                    <p style={styles.gettingStartedDesc}>Follow these steps in the terminal below:</p>
                     <div style={styles.commandSteps}>
                       <div style={styles.commandStepItem}>
                         <span style={styles.commandStepNum}>1</span>
-                        <div style={styles.commandStepContent}>
-                          <code 
-                            style={styles.commandStepCode}
-                            onClick={() => {
-                              navigator.clipboard.writeText('ordo status')
-                              toast.success('Copied!', { description: 'ordo status' })
-                            }}
-                          >
-                            ordo status
-                          </code>
-                          <span style={styles.commandStepDesc}>Check bot status - look for your channel showing "ON" and "OK"</span>
-                        </div>
-                      </div>
-                      <div style={styles.commandStepItem}>
-                        <span style={styles.commandStepNum}>2</span>
                         <div style={styles.commandStepContent}>
                           <code 
                             style={styles.commandStepCode}
@@ -838,11 +823,11 @@ export function Dashboard() {
                           >
                             ordo doctor --fix
                           </code>
-                          <span style={styles.commandStepDesc}>Auto-fix permissions and configuration issues</span>
+                          <span style={styles.commandStepDesc}>Fix any configuration issues first</span>
                         </div>
                       </div>
                       <div style={styles.commandStepItem}>
-                        <span style={styles.commandStepNum}>3</span>
+                        <span style={styles.commandStepNum}>2</span>
                         <div style={styles.commandStepContent}>
                           <code 
                             style={styles.commandStepCode}
@@ -853,7 +838,43 @@ export function Dashboard() {
                           >
                             ordo gateway
                           </code>
-                          <span style={styles.commandStepDesc}>Start the bot gateway (connects to your channels)</span>
+                          <span style={styles.commandStepDesc}>Start the bot (leave it running)</span>
+                        </div>
+                      </div>
+                      <div style={styles.commandStepItem}>
+                        <span style={styles.commandStepNum}>3</span>
+                        <div style={styles.commandStepContent}>
+                          <span style={styles.commandStepDesc}>Go to Telegram/Discord, send /start → get a pairing code</span>
+                        </div>
+                      </div>
+                      <div style={styles.commandStepItem}>
+                        <span style={styles.commandStepNum}>4</span>
+                        <div style={styles.commandStepContent}>
+                          <span style={styles.commandStepDesc}>Press Ctrl+C to stop gateway, then approve the pairing:</span>
+                          <code 
+                            style={{ ...styles.commandStepCode, marginTop: 4 }}
+                            onClick={() => {
+                              navigator.clipboard.writeText('clawdbot pairing approve telegram ')
+                              toast.success('Copied!', { description: 'clawdbot pairing approve telegram [YOUR_CODE]' })
+                            }}
+                          >
+                            clawdbot pairing approve telegram YOUR_CODE
+                          </code>
+                        </div>
+                      </div>
+                      <div style={styles.commandStepItem}>
+                        <span style={styles.commandStepNum}>5</span>
+                        <div style={styles.commandStepContent}>
+                          <code 
+                            style={styles.commandStepCode}
+                            onClick={() => {
+                              navigator.clipboard.writeText('ordo gateway')
+                              toast.success('Copied!', { description: 'ordo gateway' })
+                            }}
+                          >
+                            ordo gateway
+                          </code>
+                          <span style={styles.commandStepDesc}>Start gateway again - now you can chat!</span>
                         </div>
                       </div>
                     </div>
@@ -899,12 +920,14 @@ export function Dashboard() {
                     {connections?.map((conn: { _id: string; platform: string }) => {
                       const platformGuides: Record<string, { title: string; steps: string[]; link: string; linkText: string }> = {
                         telegram: {
-                          title: '📱 Step 2: Chat on Telegram',
+                          title: '📱 Step 2: Pair Your Telegram',
                           steps: [
-                            '1. Open Telegram on your phone or desktop',
-                            '2. Search for your bot username (the one you created with @BotFather)',
-                            '3. Click "Start" or send any message like "Hello!"',
-                            '4. Your AI will respond - ask it anything!',
+                            '1. Run "ordo gateway" in the terminal below',
+                            '2. Open Telegram and search for your bot username',
+                            '3. Send /start - you\'ll get a pairing code (like ABCD1234)',
+                            '4. Press Ctrl+C in terminal to stop the gateway',
+                            '5. Run: clawdbot pairing approve telegram YOUR_CODE',
+                            '6. Run "ordo gateway" again - now you can chat!',
                           ],
                           link: 'https://telegram.org/',
                           linkText: 'Open Telegram',
@@ -1055,6 +1078,28 @@ export function Dashboard() {
                         ))}
                       </div>
                       
+                      <h4 style={{ ...styles.commandsSectionTitle, marginTop: 16 }}>Pairing Commands (for first-time setup)</h4>
+                      <div style={styles.commandsGrid}>
+                        {[
+                          { cmd: 'clawdbot pairing approve telegram ', label: 'Approve Telegram', desc: 'Add your pairing code at the end' },
+                          { cmd: 'clawdbot pairing approve discord ', label: 'Approve Discord', desc: 'Add your pairing code at the end' },
+                          { cmd: 'clawdbot pairing list', label: 'List pending', desc: 'See all pending pairing requests' },
+                        ].map((item) => (
+                          <button
+                            key={item.cmd}
+                            style={styles.commandCard}
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.cmd)
+                              toast.success('Copied to clipboard', { description: item.cmd })
+                            }}
+                            title={`Copy: ${item.cmd}`}
+                          >
+                            <code style={styles.commandCode}>{item.label}</code>
+                            <span style={styles.commandDesc}>{item.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+
                       <h4 style={{ ...styles.commandsSectionTitle, marginTop: 16 }}>Other Useful Commands</h4>
                       <div style={styles.commandsGrid}>
                         {[

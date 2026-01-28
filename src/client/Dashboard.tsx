@@ -253,10 +253,6 @@ export function Dashboard() {
   const [provisioning, setProvisioning] = useState(false)
   const [retrying, setRetrying] = useState(false)
   const [showFaq, setShowFaq] = useState(false)
-  const [terminalTabs, setTerminalTabs] = useState<{ id: number; name: string }[]>([
-    { id: 1, name: 'Terminal 1' }
-  ])
-  const [activeTerminalTab, setActiveTerminalTab] = useState(1)
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ordo-theme')
@@ -294,21 +290,6 @@ export function Dashboard() {
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
-
-  const addTerminalTab = () => {
-    const newId = Math.max(...terminalTabs.map(t => t.id)) + 1
-    setTerminalTabs([...terminalTabs, { id: newId, name: `Terminal ${newId}` }])
-    setActiveTerminalTab(newId)
-  }
-
-  const closeTerminalTab = (id: number) => {
-    if (terminalTabs.length === 1) return // Keep at least one tab
-    const newTabs = terminalTabs.filter(t => t.id !== id)
-    setTerminalTabs(newTabs)
-    if (activeTerminalTab === id) {
-      setActiveTerminalTab(newTabs[newTabs.length - 1].id)
-    }
   }
 
   const handleSaveAnthropicKey = async () => {
@@ -1173,74 +1154,52 @@ export function Dashboard() {
                 <div style={styles.terminalCard}>
                   <div style={styles.terminalHeader}>
                     <div style={styles.terminalHeaderLeft}>
-                      <div style={styles.terminalTabs}>
-                        {terminalTabs.map((tab) => (
-                          <div
-                            key={tab.id}
-                            style={{
-                              ...styles.terminalTab,
-                              ...(activeTerminalTab === tab.id ? styles.terminalTabActive : {}),
-                            }}
-                            onClick={() => setActiveTerminalTab(tab.id)}
-                          >
-                            <span>{tab.name}</span>
-                            {terminalTabs.length > 1 && (
-                              <button
-                                style={styles.terminalTabClose}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  closeTerminalTab(tab.id)
-                                }}
-                                title="Close terminal"
-                              >
-                                ×
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <button
-                          style={styles.terminalTabAdd}
-                          onClick={addTerminalTab}
-                          title="New terminal"
-                        >
-                          +
-                        </button>
-                      </div>
+                      <span style={{ fontWeight: 600, color: currentColors.text }}>🖥️ Terminal Access</span>
                       <span style={styles.terminalBadge}>Advanced</span>
                     </div>
                     <span style={styles.terminalHint}>For debugging only - everything is auto-configured!</span>
                   </div>
-                  <div style={styles.terminalShortcutsHint}>
-                    <span style={styles.shortcutKey}>Ctrl+Shift+C</span> to copy
-                    <span style={styles.shortcutDivider}>•</span>
-                    <span style={styles.shortcutKey}>Ctrl+Shift+V</span> to paste
-                  </div>
                   <div className="terminal-container" style={styles.terminalContainer}>
-                    {terminalTabs.map((tab) => (
-                      <iframe
-                        key={tab.id}
-                        src={dashboard?.vm?.ip || ''}
-                        style={{
-                          ...styles.terminalIframe,
-                          display: activeTerminalTab === tab.id ? 'block' : 'none',
-                        }}
-                        title={`Ordo ${tab.name}`}
-                        allow="clipboard-read; clipboard-write"
-                      />
-                    ))}
-                    {/* Loading overlay - shown when terminal might still be starting */}
+                    {/* Show message about HTTPS limitation */}
                     <div style={{
-                      position: 'absolute',
-                      bottom: '10px',
-                      left: '10px',
-                      background: 'rgba(0,0,0,0.8)',
-                      color: '#aaa',
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      pointerEvents: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      color: '#888',
+                      textAlign: 'center',
+                      padding: '40px',
                     }}>
-                      💡 Blank screen? Terminal takes 3-5 min to start after provisioning. Refresh to retry.
+                      <div style={{ fontSize: '48px', marginBottom: '16px' }}>🖥️</div>
+                      <h3 style={{ color: '#ccc', marginBottom: '8px', fontWeight: 600 }}>Terminal Available</h3>
+                      <p style={{ marginBottom: '20px', maxWidth: '400px', lineHeight: 1.5 }}>
+                        Your terminal is running at <code style={{ background: '#333', padding: '2px 6px', borderRadius: '4px' }}>{dashboard?.vm?.ip}</code>
+                      </p>
+                      <p style={{ fontSize: '13px', marginBottom: '20px', opacity: 0.7 }}>
+                        Due to browser security (HTTPS), the terminal opens in a new tab.
+                      </p>
+                      <button
+                        onClick={() => window.open(dashboard?.vm?.ip || '', '_blank')}
+                        style={{
+                          background: currentColors.accent,
+                          color: '#fff',
+                          border: 'none',
+                          padding: '14px 28px',
+                          borderRadius: '8px',
+                          fontSize: '16px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        🖥️ Open Terminal
+                      </button>
+                      <p style={{ fontSize: '12px', marginTop: '16px', opacity: 0.5 }}>
+                        Tip: Bookmark the terminal URL for quick access
+                      </p>
                     </div>
                   </div>
                   <div style={styles.terminalFooter}>

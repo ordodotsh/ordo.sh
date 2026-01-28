@@ -808,8 +808,8 @@ export function Dashboard() {
 
                   {/* Step 1: Start the bot */}
                   <div style={styles.gettingStartedCard}>
-                    <h4 style={styles.gettingStartedTitle}>🚀 Getting Started</h4>
-                    <p style={styles.gettingStartedDesc}>Follow these steps in the terminal below:</p>
+                    <h4 style={styles.gettingStartedTitle}>🚀 First-Time Setup (Pairing)</h4>
+                    <p style={styles.gettingStartedDesc}>New users must be approved before chatting. Follow these steps:</p>
                     <div style={styles.commandSteps}>
                       <div style={styles.commandStepItem}>
                         <span style={styles.commandStepNum}>1</span>
@@ -823,7 +823,7 @@ export function Dashboard() {
                           >
                             ordo doctor --fix
                           </code>
-                          <span style={styles.commandStepDesc}>Fix any configuration issues first</span>
+                          <span style={styles.commandStepDesc}>Fix any configuration issues</span>
                         </div>
                       </div>
                       <div style={styles.commandStepItem}>
@@ -838,28 +838,30 @@ export function Dashboard() {
                           >
                             ordo gateway
                           </code>
-                          <span style={styles.commandStepDesc}>Start the bot (leave it running)</span>
+                          <span style={styles.commandStepDesc}>Start the gateway (must be running to receive pairing code)</span>
                         </div>
                       </div>
                       <div style={styles.commandStepItem}>
                         <span style={styles.commandStepNum}>3</span>
                         <div style={styles.commandStepContent}>
-                          <span style={styles.commandStepDesc}>Go to Telegram/Discord, send /start → get a pairing code</span>
+                          <span style={styles.commandStepDesc}>Open Telegram → find your bot → send <strong>/start</strong></span>
+                          <span style={styles.commandStepDesc}>You'll receive an <strong>8-character pairing code</strong> (e.g. ABCD1234)</span>
                         </div>
                       </div>
                       <div style={styles.commandStepItem}>
                         <span style={styles.commandStepNum}>4</span>
                         <div style={styles.commandStepContent}>
-                          <span style={styles.commandStepDesc}>Press Ctrl+C to stop gateway, then approve the pairing:</span>
+                          <span style={styles.commandStepDesc}>Press <strong>Ctrl+C</strong> to stop the gateway, then approve:</span>
                           <code 
                             style={{ ...styles.commandStepCode, marginTop: 4 }}
                             onClick={() => {
                               navigator.clipboard.writeText('clawdbot pairing approve telegram ')
-                              toast.success('Copied!', { description: 'clawdbot pairing approve telegram [YOUR_CODE]' })
+                              toast.success('Copied! Add your code at the end', { description: 'clawdbot pairing approve telegram CODE' })
                             }}
                           >
-                            clawdbot pairing approve telegram YOUR_CODE
+                            clawdbot pairing approve telegram CODE
                           </code>
+                          <span style={styles.commandStepDesc}>Replace CODE with your 8-character code</span>
                         </div>
                       </div>
                       <div style={styles.commandStepItem}>
@@ -874,9 +876,17 @@ export function Dashboard() {
                           >
                             ordo gateway
                           </code>
-                          <span style={styles.commandStepDesc}>Start gateway again - now you can chat!</span>
+                          <span style={styles.commandStepDesc}>Start gateway again - now your messages will work!</span>
                         </div>
                       </div>
+                    </div>
+                    
+                    <div style={styles.pairingNote}>
+                      <strong>Note:</strong> Pairing codes expire after 1 hour. After approval, you won't need to pair again.
+                      <br />
+                      <a href="https://docs.clawd.bot/start/pairing" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                        Read full pairing docs →
+                      </a>
                     </div>
                     
                     {/* Status explanation */}
@@ -1078,12 +1088,13 @@ export function Dashboard() {
                         ))}
                       </div>
                       
-                      <h4 style={{ ...styles.commandsSectionTitle, marginTop: 16 }}>Pairing Commands (for first-time setup)</h4>
+                      <h4 style={{ ...styles.commandsSectionTitle, marginTop: 16 }}>Pairing Commands</h4>
                       <div style={styles.commandsGrid}>
                         {[
-                          { cmd: 'clawdbot pairing approve telegram ', label: 'Approve Telegram', desc: 'Add your pairing code at the end' },
-                          { cmd: 'clawdbot pairing approve discord ', label: 'Approve Discord', desc: 'Add your pairing code at the end' },
-                          { cmd: 'clawdbot pairing list', label: 'List pending', desc: 'See all pending pairing requests' },
+                          { cmd: 'clawdbot pairing list telegram', label: 'clawdbot pairing list telegram', desc: 'See pending Telegram requests' },
+                          { cmd: 'clawdbot pairing approve telegram ', label: 'clawdbot pairing approve telegram CODE', desc: 'Approve a Telegram user' },
+                          { cmd: 'clawdbot pairing list discord', label: 'clawdbot pairing list discord', desc: 'See pending Discord requests' },
+                          { cmd: 'clawdbot pairing approve discord ', label: 'clawdbot pairing approve discord CODE', desc: 'Approve a Discord user' },
                         ].map((item) => (
                           <button
                             key={item.cmd}
@@ -1969,6 +1980,15 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
   },
   docsLinkDivider: {
     color: c.textMuted,
+  },
+  pairingNote: {
+    marginTop: 16,
+    padding: 12,
+    background: c.bgAlt,
+    borderRadius: 8,
+    fontSize: 13,
+    color: c.textSecondary,
+    lineHeight: 1.5,
   },
   platformInstructions: {
     display: 'grid',

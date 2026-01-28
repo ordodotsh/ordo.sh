@@ -66,92 +66,57 @@ export const updateStatus = internalMutation({
 
 // Generate cloud-init user data for DigitalOcean droplet
 function generateCloudInit(envVars: Record<string, string>, botImage: string): string {
-  // Escape values for shell
-  const escapeForShell = (s: string) => s.replace(/'/g, "'\\''");
-  
-  // Build env file content
-  const envFileContent = Object.entries(envVars)
-    .map(([k, v]) => `${k}='${escapeForShell(v)}'`)
-    .join('\n');
+  // Build Docker env flags
+  const envFlags = Object.entries(envVars)
+    .map(([k, v]) => `-e ${k}="${v.replace(/"/g, '\\"')}"`)
+    .join(' \\\n    ');
 
-  return `#cloud-config
-package_update: true
-package_upgrade: false
+  // Simple shell script approach - more reliable than cloud-config YAML
+  return `#!/bin/bash
+set -ex
 
-packages:
-  - docker.io
-  - docker-compose
+# Log everything
+exec > /var/log/ordo-setup.log 2>&1
 
-runcmd:
-  # Enable Docker
-  - systemctl enable docker
-  - systemctl start docker
-  
-  # Create directories
-  - mkdir -p /opt/ordo
-  - mkdir -p /home/ordo/.clawdbot
-  - mkdir -p /home/ordo/clawd
-  
-  # Write environment file
-  - |
-    cat > /opt/ordo/.env << 'ENVEOF'
-${envFileContent}
-ENVEOF
-  
-  # Write docker-compose file
-  - |
-    cat > /opt/ordo/docker-compose.yml << 'COMPOSEEOF'
-version: '3.8'
-services:
-  clawdbot:
-    image: ${botImage}
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      - HOME=/home/node
-      - NODE_ENV=production
-      - DISPLAY=:99
-      - CLAWDBOT_GATEWAY_BIND=lan
-      - CLAWDBOT_GATEWAY_PORT=18789
-    volumes:
-      - /home/ordo/.clawdbot:/home/node/.clawdbot
-      - /home/ordo/clawd:/home/node/clawd
-    network_mode: host
-    depends_on:
-      - xvfb
-  
-  xvfb:
-    image: selenium/standalone-chrome:latest
-    restart: unless-stopped
-    environment:
-      - DISPLAY=:99
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    network_mode: host
-    entrypoint: []
-    command: Xvfb :99 -screen 0 1920x1080x24
+echo "=== Ordo.sh Setup Started ==="
+date
 
-  ttyd:
-    image: tsl0922/ttyd:latest
-    restart: unless-stopped
-    command: ttyd -W -p 7681 docker exec -it ordo-clawdbot-1 /bin/bash
-    ports:
-      - "7681:7681"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-COMPOSEEOF
-  
-  # Pull images and start
-  - cd /opt/ordo && docker-compose pull
-  - cd /opt/ordo && docker-compose up -d
-  
-  # Set up firewall (allow SSH, HTTP, HTTPS, ttyd)
-  - ufw allow 22/tcp
-  - ufw allow 80/tcp
-  - ufw allow 443/tcp
-  - ufw allow 7681/tcp
-  - ufw --force enable
+# Install Docker
+apt-get update
+apt-get install -y docker.io
+systemctl enable docker
+systemctl start docker
+
+# Wait for Docker to be ready
+sleep 5
+docker version
+
+# Create data directories
+mkdir -p /opt/ordo/data/.clawdbot
+mkdir -p /opt/ordo/data/workspace
+
+# Pull and run the ordo-bot container
+# The container has Chrome, Xvfb, ttyd, and clawdbot all built-in
+docker pull ${botImage}
+
+docker run -d \\
+    --name ordo-bot \\
+    --restart unless-stopped \\
+    --network host \\
+    ${envFlags} \\
+    -v /opt/ordo/data/.clawdbot:/home/dev/.clawdbot \\
+    -v /opt/ordo/data/workspace:/home/dev/ordo \\
+    ${botImage}
+
+# Wait for container to start
+sleep 10
+
+# Show container status
+docker ps
+docker logs ordo-bot
+
+echo "=== Ordo.sh Setup Complete ==="
+date
 `;
 }
 

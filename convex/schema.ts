@@ -26,8 +26,13 @@ export default defineSchema({
   // VMs - one per user, running clawdbot on DigitalOcean
   vms: defineTable({
     userId: v.id("users"),
-    dropletName: v.string(),              // DigitalOcean droplet name
+    // DigitalOcean fields
+    dropletName: v.optional(v.string()),  // DigitalOcean droplet name
     dropletId: v.optional(v.number()),    // DigitalOcean droplet ID
+    // Legacy Fly.io fields (for migration)
+    flyAppName: v.optional(v.string()),
+    flyMachineId: v.optional(v.string()),
+    // Common fields
     status: v.union(
       v.literal("provisioning"),
       v.literal("running"),
@@ -40,8 +45,7 @@ export default defineSchema({
     createdAt: v.number(),
     error: v.optional(v.string()),
   })
-    .index("by_user", ["userId"])
-    .index("by_droplet_name", ["dropletName"]),
+    .index("by_user", ["userId"]),
 
   // User credentials - API keys for clawdbot
   credentials: defineTable({

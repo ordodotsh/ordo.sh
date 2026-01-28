@@ -81,6 +81,9 @@ exec > /var/log/ordo-setup.log 2>&1
 echo "=== Ordo.sh Setup Started ==="
 date
 
+# Set root password to 'ordo' for easy console access
+echo 'root:ordo' | chpasswd
+
 # Install Docker
 apt-get update
 apt-get install -y docker.io

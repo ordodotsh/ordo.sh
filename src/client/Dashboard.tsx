@@ -823,7 +823,7 @@ export function Dashboard() {
                           >
                             ordo status
                           </code>
-                          <span style={styles.commandStepDesc}>Check if bot is running (click to copy)</span>
+                          <span style={styles.commandStepDesc}>Check bot status - look for your channel showing "ON" and "OK"</span>
                         </div>
                       </div>
                       <div style={styles.commandStepItem}>
@@ -838,7 +838,7 @@ export function Dashboard() {
                           >
                             ordo doctor --fix
                           </code>
-                          <span style={styles.commandStepDesc}>Auto-fix any issues and start the bot</span>
+                          <span style={styles.commandStepDesc}>Auto-fix permissions and configuration issues</span>
                         </div>
                       </div>
                       <div style={styles.commandStepItem}>
@@ -847,15 +847,50 @@ export function Dashboard() {
                           <code 
                             style={styles.commandStepCode}
                             onClick={() => {
-                              navigator.clipboard.writeText('ordo status')
-                              toast.success('Copied!', { description: 'ordo status' })
+                              navigator.clipboard.writeText('ordo gateway')
+                              toast.success('Copied!', { description: 'ordo gateway' })
                             }}
                           >
-                            ordo status
+                            ordo gateway
                           </code>
-                          <span style={styles.commandStepDesc}>Verify bot shows "Gateway: running"</span>
+                          <span style={styles.commandStepDesc}>Start the bot gateway (connects to your channels)</span>
                         </div>
                       </div>
+                    </div>
+                    
+                    {/* Status explanation */}
+                    <div style={styles.statusExplainer}>
+                      <h5 style={styles.statusExplainerTitle}>Understanding ordo status:</h5>
+                      <div style={styles.statusItems}>
+                        <div style={styles.statusItem}>
+                          <span style={styles.statusGood}>ON + OK</span>
+                          <span style={styles.statusItemDesc}>Channel is configured correctly</span>
+                        </div>
+                        <div style={styles.statusItem}>
+                          <span style={styles.statusWarn}>WARN</span>
+                          <span style={styles.statusItemDesc}>Minor issue - run <code style={styles.inlineCode}>ordo doctor --fix</code></span>
+                        </div>
+                        <div style={styles.statusItem}>
+                          <span style={styles.statusInfo}>"no sessions yet"</span>
+                          <span style={styles.statusItemDesc}>Normal! Appears until someone chats with your bot</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Docs link */}
+                    <div style={styles.docsLink}>
+                      <span style={styles.docsLinkText}>Need help?</span>
+                      <a href="https://docs.clawd.bot/faq" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                        FAQ
+                      </a>
+                      <span style={styles.docsLinkDivider}>•</span>
+                      <a href="https://docs.clawd.bot/troubleshooting" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                        Troubleshooting
+                      </a>
+                      <span style={styles.docsLinkDivider}>•</span>
+                      <a href="https://docs.clawd.bot" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                        Full Docs
+                      </a>
                     </div>
                   </div>
 
@@ -1778,6 +1813,90 @@ const createStyles = (c: Colors): Record<string, React.CSSProperties> => ({
   },
   commandStepDesc: {
     fontSize: 13,
+    color: c.textMuted,
+  },
+  statusExplainer: {
+    marginTop: 20,
+    padding: 16,
+    background: c.cardBg,
+    borderRadius: 10,
+    border: `1px solid ${c.border}`,
+  },
+  statusExplainerTitle: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: c.text,
+    margin: 0,
+    marginBottom: 12,
+  },
+  statusItems: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  statusItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    fontSize: 13,
+  },
+  statusGood: {
+    padding: '2px 8px',
+    background: c.successBg,
+    color: c.green,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  statusWarn: {
+    padding: '2px 8px',
+    background: c.guideBoxBg,
+    color: c.guideBoxText,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    fontSize: 12,
+    fontWeight: 600,
+  },
+  statusInfo: {
+    padding: '2px 8px',
+    background: c.bgAlt,
+    color: c.textMuted,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    fontSize: 12,
+  },
+  statusItemDesc: {
+    color: c.textSecondary,
+  },
+  inlineCode: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    background: c.bgAlt,
+    padding: '1px 4px',
+    borderRadius: 3,
+    color: c.accent,
+  },
+  docsLink: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTop: `1px solid ${c.border}`,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  docsLinkText: {
+    fontSize: 13,
+    color: c.textMuted,
+  },
+  docsLinkAnchor: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: c.accent,
+    textDecoration: 'none',
+  },
+  docsLinkDivider: {
     color: c.textMuted,
   },
   platformInstructions: {

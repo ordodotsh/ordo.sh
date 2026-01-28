@@ -18,8 +18,8 @@ export const getByUser = query({
 export const create = internalMutation({
   args: {
     userId: v.id("users"),
-    serverName: v.string(),
-    hetznerServerId: v.optional(v.number()),
+    dropletName: v.string(),
+    dropletId: v.optional(v.number()),
     status: v.union(
       v.literal("provisioning"),
       v.literal("running"),
@@ -50,13 +50,13 @@ export const updateStatus = internalMutation({
       v.literal("failed"),
       v.literal("deleted")
     ),
-    hetznerServerId: v.optional(v.number()),
+    dropletId: v.optional(v.number()),
     ip: v.optional(v.string()),
     error: v.optional(v.string()),
   },
-  handler: async (ctx, { vmId, status, hetznerServerId, ip, error }) => {
+  handler: async (ctx, { vmId, status, dropletId, ip, error }) => {
     const updates: any = { status };
-    if (hetznerServerId) updates.hetznerServerId = hetznerServerId;
+    if (dropletId) updates.dropletId = dropletId;
     if (ip) updates.ip = ip;
     if (error) updates.error = error;
     if (status === "running") updates.error = undefined; // Clear error on success
@@ -64,7 +64,7 @@ export const updateStatus = internalMutation({
   },
 });
 
-// Generate cloud-init user data for Hetzner server
+// Generate cloud-init user data for DigitalOcean droplet
 function generateCloudInit(envVars: Record<string, string>, botImage: string): string {
   // Escape values for shell
   const escapeForShell = (s: string) => s.replace(/'/g, "'\\''");
@@ -76,17 +76,11 @@ function generateCloudInit(envVars: Record<string, string>, botImage: string): s
 
   return `#cloud-config
 package_update: true
-package_upgrade: true
+package_upgrade: false
 
 packages:
   - docker.io
   - docker-compose
-  - xvfb
-  - chromium-browser
-  - fonts-liberation
-  - libnss3
-  - libatk-bridge2.0-0
-  - libgtk-3-0
 
 runcmd:
   # Enable Docker
@@ -126,7 +120,6 @@ services:
     network_mode: host
     depends_on:
       - xvfb
-    command: clawdbot gateway
   
   xvfb:
     image: selenium/standalone-chrome:latest
@@ -136,6 +129,7 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
     network_mode: host
+    entrypoint: []
     command: Xvfb :99 -screen 0 1920x1080x24
 
   ttyd:
@@ -147,11 +141,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 COMPOSEEOF
-
-  # Pull images and start (gateway runs automatically as container's main process)
+  
+  # Pull images and start
   - cd /opt/ordo && docker-compose pull
   - cd /opt/ordo && docker-compose up -d
-
+  
   # Set up firewall (allow SSH, HTTP, HTTPS, ttyd)
   - ufw allow 22/tcp
   - ufw allow 80/tcp
@@ -161,12 +155,12 @@ COMPOSEEOF
 `;
 }
 
-// Provision a new VM on Hetzner Cloud
+// Provision a new VM on DigitalOcean
 export const provision = action({
   args: { userId: v.id("users"), wallet: v.string() },
-  handler: async (ctx, { userId, wallet }): Promise<{ success: true; vmId: Id<"vms">; serverName: string; serverId: number }> => {
-    const serverName = `ordo-${wallet.slice(0, 8).toLowerCase()}-${Date.now().toString(36)}`;
-    const region = "nbg1"; // Nuremberg, Germany - good connectivity
+  handler: async (ctx, { userId, wallet }): Promise<{ success: true; vmId: Id<"vms">; dropletName: string; dropletId: number }> => {
+    const dropletName = `ordo-${wallet.slice(0, 8).toLowerCase()}-${Date.now().toString(36)}`;
+    const region = "nyc1"; // New York - good for US users
 
     // Fetch user's credentials and connections
     const credentials = await ctx.runQuery(internal.credentials.getFull, { userId });
@@ -178,15 +172,9 @@ export const provision = action({
       ORDO_AUTO_CONFIG: "true",
     };
 
-    // Add LLM provider API keys if set
+    // Add Anthropic API key if set
     if (credentials?.anthropicKey) {
       envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
-    }
-    if (credentials?.openaiKey) {
-      envVars.OPENAI_API_KEY = credentials.openaiKey;
-    }
-    if (credentials?.googleKey) {
-      envVars.GOOGLE_API_KEY = credentials.googleKey;
     }
 
     // Add channel tokens and configs
@@ -211,15 +199,15 @@ export const provision = action({
     // Create VM record first (provisioning status)
     const vmId: Id<"vms"> = await ctx.runMutation(internal.vms.create, {
       userId,
-      serverName,
+      dropletName,
       status: "provisioning",
       region,
     });
 
     try {
-      const hetznerToken = process.env.HETZNER_API_TOKEN;
-      if (!hetznerToken) {
-        throw new Error("HETZNER_API_TOKEN not configured");
+      const doToken = process.env.DIGITALOCEAN_API_TOKEN;
+      if (!doToken) {
+        throw new Error("DIGITALOCEAN_API_TOKEN not configured");
       }
 
       const botImage = await ctx.runQuery(api.settings.getBotImage, {});
@@ -230,52 +218,46 @@ export const provision = action({
       // Generate cloud-init script
       const userData = generateCloudInit(envVars, botImage);
 
-      // Create Hetzner server
-      const serverRes = await fetch("https://api.hetzner.cloud/v1/servers", {
+      // Create DigitalOcean droplet
+      const dropletRes = await fetch("https://api.digitalocean.com/v2/droplets", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${hetznerToken}`,
+          Authorization: `Bearer ${doToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: serverName,
-          server_type: "cx22",        // 2 vCPU, 4GB RAM - ~€4.50/month
-          image: "ubuntu-24.04",      // Ubuntu 24.04 LTS
-          location: region,
-          start_after_create: true,
+          name: dropletName,
+          region: region,
+          size: "s-2vcpu-4gb",        // 2 vCPU, 4GB RAM - $24/month
+          image: "ubuntu-24-04-x64",  // Ubuntu 24.04 LTS
           user_data: userData,
-          labels: {
-            ordo: "true",
-            wallet: wallet.slice(0, 8).toLowerCase(),
-          },
-          public_net: {
-            enable_ipv4: true,
-            enable_ipv6: true,
-          },
+          tags: ["ordo", wallet.slice(0, 8).toLowerCase()],
         }),
       });
 
-      if (!serverRes.ok) {
-        const error = await serverRes.text();
-        throw new Error(`Failed to create server: ${error}`);
+      if (!dropletRes.ok) {
+        const error = await dropletRes.text();
+        throw new Error(`Failed to create droplet: ${error}`);
       }
 
-      const serverData = await serverRes.json();
-      const server = serverData.server;
-      const publicIp = server.public_net?.ipv4?.ip;
+      const dropletData = await dropletRes.json();
+      const droplet = dropletData.droplet;
       
-      // Terminal URL will be http://IP:7681 (ttyd)
-      const terminalUrl = publicIp ? `http://${publicIp}:7681` : undefined;
-
-      // Update VM record with server info
+      // DigitalOcean doesn't return IP immediately - need to poll
+      // For now, schedule a follow-up to get the IP
       await ctx.runMutation(internal.vms.updateStatus, {
         vmId,
-        status: "running",
-        hetznerServerId: server.id,
-        ip: terminalUrl,
+        status: "provisioning",
+        dropletId: droplet.id,
       });
 
-      return { success: true, vmId, serverName, serverId: server.id };
+      // Schedule IP fetch (droplet takes ~60s to provision)
+      await ctx.scheduler.runAfter(60000, internal.vms.fetchDropletIp, {
+        vmId,
+        dropletId: droplet.id,
+      });
+
+      return { success: true, vmId, dropletName, dropletId: droplet.id };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
 
@@ -290,34 +272,88 @@ export const provision = action({
   },
 });
 
-// Stop VM (shutdown)
+// Fetch droplet IP after provisioning (scheduled)
+export const fetchDropletIp = internalAction({
+  args: { vmId: v.id("vms"), dropletId: v.number() },
+  handler: async (ctx, { vmId, dropletId }) => {
+    const doToken = process.env.DIGITALOCEAN_API_TOKEN;
+    if (!doToken) {
+      throw new Error("DIGITALOCEAN_API_TOKEN not configured");
+    }
+
+    const res = await fetch(`https://api.digitalocean.com/v2/droplets/${dropletId}`, {
+      headers: {
+        Authorization: `Bearer ${doToken}`,
+      },
+    });
+
+    if (!res.ok) {
+      // Retry in 30 seconds
+      await ctx.scheduler.runAfter(30000, internal.vms.fetchDropletIp, {
+        vmId,
+        dropletId,
+      });
+      return;
+    }
+
+    const data = await res.json();
+    const droplet = data.droplet;
+    
+    // Find public IPv4
+    const publicIp = droplet.networks?.v4?.find(
+      (n: any) => n.type === "public"
+    )?.ip_address;
+
+    if (!publicIp) {
+      // Retry in 30 seconds
+      await ctx.scheduler.runAfter(30000, internal.vms.fetchDropletIp, {
+        vmId,
+        dropletId,
+      });
+      return;
+    }
+
+    // Terminal URL will be http://IP:7681 (ttyd)
+    const terminalUrl = `http://${publicIp}:7681`;
+
+    await ctx.runMutation(internal.vms.updateStatus, {
+      vmId,
+      status: "running",
+      ip: terminalUrl,
+    });
+  },
+});
+
+// Stop VM (power off)
 export const stop = action({
   args: { vmId: v.id("vms") },
   handler: async (ctx, { vmId }) => {
     const vm = await ctx.runQuery(internal.vms.get, { vmId });
-    if (!vm || !vm.hetznerServerId) {
+    if (!vm || !vm.dropletId) {
       throw new Error("VM not found");
     }
 
-    const hetznerToken = process.env.HETZNER_API_TOKEN;
-    if (!hetznerToken) {
-      throw new Error("HETZNER_API_TOKEN not configured");
+    const doToken = process.env.DIGITALOCEAN_API_TOKEN;
+    if (!doToken) {
+      throw new Error("DIGITALOCEAN_API_TOKEN not configured");
     }
 
-    // Shutdown the server (graceful)
+    // Power off the droplet
     const res = await fetch(
-      `https://api.hetzner.cloud/v1/servers/${vm.hetznerServerId}/actions/shutdown`,
+      `https://api.digitalocean.com/v2/droplets/${vm.dropletId}/actions`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${hetznerToken}`,
+          Authorization: `Bearer ${doToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ type: "power_off" }),
       }
     );
 
     if (!res.ok) {
       const error = await res.text();
-      throw new Error(`Failed to stop server: ${error}`);
+      throw new Error(`Failed to stop droplet: ${error}`);
     }
 
     await ctx.runMutation(internal.vms.updateStatus, {
@@ -334,28 +370,30 @@ export const start = action({
   args: { vmId: v.id("vms") },
   handler: async (ctx, { vmId }) => {
     const vm = await ctx.runQuery(internal.vms.get, { vmId });
-    if (!vm || !vm.hetznerServerId) {
+    if (!vm || !vm.dropletId) {
       throw new Error("VM not found");
     }
 
-    const hetznerToken = process.env.HETZNER_API_TOKEN;
-    if (!hetznerToken) {
-      throw new Error("HETZNER_API_TOKEN not configured");
+    const doToken = process.env.DIGITALOCEAN_API_TOKEN;
+    if (!doToken) {
+      throw new Error("DIGITALOCEAN_API_TOKEN not configured");
     }
 
     const res = await fetch(
-      `https://api.hetzner.cloud/v1/servers/${vm.hetznerServerId}/actions/poweron`,
+      `https://api.digitalocean.com/v2/droplets/${vm.dropletId}/actions`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${hetznerToken}`,
+          Authorization: `Bearer ${doToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ type: "power_on" }),
       }
     );
 
     if (!res.ok) {
       const error = await res.text();
-      throw new Error(`Failed to start server: ${error}`);
+      throw new Error(`Failed to start droplet: ${error}`);
     }
 
     await ctx.runMutation(internal.vms.updateStatus, {
@@ -372,22 +410,24 @@ export const stopInternal = internalAction({
   args: { vmId: v.id("vms") },
   handler: async (ctx, { vmId }) => {
     const vm = await ctx.runQuery(internal.vms.get, { vmId });
-    if (!vm || !vm.hetznerServerId) {
+    if (!vm || !vm.dropletId) {
       throw new Error("VM not found");
     }
 
-    const hetznerToken = process.env.HETZNER_API_TOKEN;
-    if (!hetznerToken) {
-      throw new Error("HETZNER_API_TOKEN not configured");
+    const doToken = process.env.DIGITALOCEAN_API_TOKEN;
+    if (!doToken) {
+      throw new Error("DIGITALOCEAN_API_TOKEN not configured");
     }
 
     await fetch(
-      `https://api.hetzner.cloud/v1/servers/${vm.hetznerServerId}/actions/shutdown`,
+      `https://api.digitalocean.com/v2/droplets/${vm.dropletId}/actions`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${hetznerToken}`,
+          Authorization: `Bearer ${doToken}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ type: "power_off" }),
       }
     );
 
@@ -411,25 +451,25 @@ export const get = internalQuery({
 // Retry failed VM provisioning (reprovision)
 export const retry = action({
   args: { wallet: v.string() },
-  handler: async (ctx, { wallet }): Promise<{ success: true; vmId: Id<"vms">; serverName: string; serverId: number }> => {
+  handler: async (ctx, { wallet }): Promise<{ success: true; vmId: Id<"vms">; dropletName: string; dropletId: number }> => {
     const user = await ctx.runQuery(internal.vms.getUserByWallet, { wallet }) as { _id: Id<"users">; wallet: string } | null;
     if (!user) {
       throw new Error("User not found");
     }
 
-    // Find and delete the existing VM (and Hetzner server)
+    // Find and delete the existing VM (and DigitalOcean droplet)
     const existingVm = await ctx.runQuery(internal.vms.getByUserId, { userId: user._id });
     if (existingVm) {
-      // Delete from Hetzner if it exists
-      if (existingVm.hetznerServerId) {
-        const hetznerToken = process.env.HETZNER_API_TOKEN;
-        if (hetznerToken) {
+      // Delete from DigitalOcean if it exists
+      if (existingVm.dropletId) {
+        const doToken = process.env.DIGITALOCEAN_API_TOKEN;
+        if (doToken) {
           await fetch(
-            `https://api.hetzner.cloud/v1/servers/${existingVm.hetznerServerId}`,
+            `https://api.digitalocean.com/v2/droplets/${existingVm.dropletId}`,
             {
               method: "DELETE",
               headers: {
-                Authorization: `Bearer ${hetznerToken}`,
+                Authorization: `Bearer ${doToken}`,
               },
             }
           );
@@ -479,9 +519,9 @@ export const deleteVm = internalMutation({
 // Internal provision action (callable from other actions)
 export const provisionInternal = internalAction({
   args: { userId: v.id("users"), wallet: v.string() },
-  handler: async (ctx, { userId, wallet }): Promise<{ success: true; vmId: Id<"vms">; serverName: string; serverId: number }> => {
-    const serverName = `ordo-${wallet.slice(0, 8).toLowerCase()}-${Date.now().toString(36)}`;
-    const region = "nbg1";
+  handler: async (ctx, { userId, wallet }): Promise<{ success: true; vmId: Id<"vms">; dropletName: string; dropletId: number }> => {
+    const dropletName = `ordo-${wallet.slice(0, 8).toLowerCase()}-${Date.now().toString(36)}`;
+    const region = "nyc1";
 
     const credentials = await ctx.runQuery(internal.credentials.getFull, { userId });
     const connections = await ctx.runQuery(internal.connections.getAllFull, { userId });
@@ -493,12 +533,6 @@ export const provisionInternal = internalAction({
 
     if (credentials?.anthropicKey) {
       envVars.ANTHROPIC_API_KEY = credentials.anthropicKey;
-    }
-    if (credentials?.openaiKey) {
-      envVars.OPENAI_API_KEY = credentials.openaiKey;
-    }
-    if (credentials?.googleKey) {
-      envVars.GOOGLE_API_KEY = credentials.googleKey;
     }
 
     for (const conn of connections) {
@@ -521,15 +555,15 @@ export const provisionInternal = internalAction({
 
     const vmId: Id<"vms"> = await ctx.runMutation(internal.vms.create, {
       userId,
-      serverName,
+      dropletName,
       status: "provisioning",
       region,
     });
 
     try {
-      const hetznerToken = process.env.HETZNER_API_TOKEN;
-      if (!hetznerToken) {
-        throw new Error("HETZNER_API_TOKEN not configured");
+      const doToken = process.env.DIGITALOCEAN_API_TOKEN;
+      if (!doToken) {
+        throw new Error("DIGITALOCEAN_API_TOKEN not configured");
       }
 
       const botImage = await ctx.runQuery(api.settings.getBotImage, {});
@@ -539,48 +573,43 @@ export const provisionInternal = internalAction({
 
       const userData = generateCloudInit(envVars, botImage);
 
-      const serverRes = await fetch("https://api.hetzner.cloud/v1/servers", {
+      const dropletRes = await fetch("https://api.digitalocean.com/v2/droplets", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${hetznerToken}`,
+          Authorization: `Bearer ${doToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: serverName,
-          server_type: "cx22",
-          image: "ubuntu-24.04",
-          location: region,
-          start_after_create: true,
+          name: dropletName,
+          region: region,
+          size: "s-2vcpu-4gb",
+          image: "ubuntu-24-04-x64",
           user_data: userData,
-          labels: {
-            ordo: "true",
-            wallet: wallet.slice(0, 8).toLowerCase(),
-          },
-          public_net: {
-            enable_ipv4: true,
-            enable_ipv6: true,
-          },
+          tags: ["ordo", wallet.slice(0, 8).toLowerCase()],
         }),
       });
 
-      if (!serverRes.ok) {
-        const error = await serverRes.text();
-        throw new Error(`Failed to create server: ${error}`);
+      if (!dropletRes.ok) {
+        const error = await dropletRes.text();
+        throw new Error(`Failed to create droplet: ${error}`);
       }
 
-      const serverData = await serverRes.json();
-      const server = serverData.server;
-      const publicIp = server.public_net?.ipv4?.ip;
-      const terminalUrl = publicIp ? `http://${publicIp}:7681` : undefined;
+      const dropletData = await dropletRes.json();
+      const droplet = dropletData.droplet;
 
       await ctx.runMutation(internal.vms.updateStatus, {
         vmId,
-        status: "running",
-        hetznerServerId: server.id,
-        ip: terminalUrl,
+        status: "provisioning",
+        dropletId: droplet.id,
       });
 
-      return { success: true, vmId, serverName, serverId: server.id };
+      // Schedule IP fetch
+      await ctx.scheduler.runAfter(60000, internal.vms.fetchDropletIp, {
+        vmId,
+        dropletId: droplet.id,
+      });
+
+      return { success: true, vmId, dropletName, dropletId: droplet.id };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
 

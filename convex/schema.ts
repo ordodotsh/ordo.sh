@@ -23,11 +23,11 @@ export default defineSchema({
     expiresAt: v.optional(v.number()),
   }).index("by_user", ["userId"]),
 
-  // VMs - one per user, running clawdbot on Hetzner Cloud
+  // VMs - one per user, running clawdbot on DigitalOcean
   vms: defineTable({
     userId: v.id("users"),
-    serverName: v.string(),           // Hetzner server name
-    hetznerServerId: v.optional(v.number()), // Hetzner server ID
+    dropletName: v.string(),              // DigitalOcean droplet name
+    dropletId: v.optional(v.number()),    // DigitalOcean droplet ID
     status: v.union(
       v.literal("provisioning"),
       v.literal("running"),
@@ -35,13 +35,13 @@ export default defineSchema({
       v.literal("failed"),
       v.literal("deleted")
     ),
-    region: v.string(),               // Hetzner location (nbg1, fsn1, hel1, etc.)
-    ip: v.optional(v.string()),       // Public IPv4
+    region: v.string(),                   // DO region (nyc1, sfo3, etc.)
+    ip: v.optional(v.string()),           // Public IPv4 (terminal URL)
     createdAt: v.number(),
     error: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
-    .index("by_server_name", ["serverName"]),
+    .index("by_droplet_name", ["dropletName"]),
 
   // User credentials - API keys for clawdbot
   credentials: defineTable({

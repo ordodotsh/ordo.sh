@@ -108,8 +108,8 @@ docker run -d \\
     --restart unless-stopped \\
     --network host \\
     ${envFlags} \\
-    -v /opt/ordo/data/.clawdbot:/home/dev/.clawdbot \\
-    -v /opt/ordo/data/workspace:/home/dev/ordo \\
+    -v /opt/ordo/data/.clawdbot:/home/node/.clawdbot \\
+    -v /opt/ordo/data/workspace:/home/node/ordo \\
     ${botImage}
 
 # Wait for container to start

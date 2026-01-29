@@ -3,7 +3,7 @@
 # Container: ghcr.io/ordodotsh/ordo-bot
 FROM node:22-alpine
 
-WORKDIR /home/dev
+WORKDIR /home/node
 
 # Enable community repository for desktop packages (must match Alpine version in node:22-alpine)
 RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/repositories
@@ -74,22 +74,21 @@ RUN npm install -g pnpm clawdbot@latest playwright \
 # Install Python packages
 RUN pip3 install --break-system-packages telethon
 
-# Create dev user and workspace
-RUN adduser -D -s /bin/bash dev && \
-    mkdir -p /home/dev/workspace /home/dev/.ssh /home/dev/.config && \
-    chown -R dev:dev /home/dev
+# Use the existing 'node' user (UID 1000) from the base image
+# Create workspace directories
+RUN mkdir -p /home/node/workspace /home/node/.ssh /home/node/.config /home/node/.clawdbot /home/node/ordo && \
+    chown -R node:node /home/node
 
 # Copy startup script
 COPY docker/startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 
-# Run as root - startup script will handle permissions and switch to dev user
-# This avoids permission issues with mounted volumes
+# Run as root - startup script will handle permissions and switch to node user
 USER root
 
 # Set up bash as default shell
 ENV SHELL=/bin/bash
-ENV HOME=/home/dev
+ENV HOME=/home/node
 ENV DISPLAY=:1
 
 # Increase Node.js memory limit (should be ~75% of container memory)

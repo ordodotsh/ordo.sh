@@ -6,17 +6,17 @@
 # Don't exit on error - we want ttyd to start even if other things fail
 set +e
 
-# Fix permissions on mounted volumes (runs as root, then switches to dev)
+# Fix permissions on mounted volumes (runs as root, then switches to node)
 if [ "$(id -u)" = "0" ]; then
-  # Ensure dev user owns all the data directories
-  chown -R dev:dev /home/dev 2>/dev/null || true
+  # Ensure node user owns all the data directories
+  chown -R node:node /home/node 2>/dev/null || true
   
-  # Re-run this script as dev user
-  exec su-exec dev "$0" "$@"
+  # Re-run this script as node user
+  exec su-exec node "$0" "$@"
 fi
 
-# Now running as dev user
-export HOME=/home/dev
+# Now running as node user
+export HOME=/home/node
 cd "$HOME"
 
 # Chromium flags for Docker/CI environments (no sandbox needed)

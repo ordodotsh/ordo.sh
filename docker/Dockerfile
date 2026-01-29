@@ -144,24 +144,13 @@ RUN npm install -g pnpm clawdbot@latest playwright \
 # Install Python packages
 RUN pip3 install --break-system-packages \
     telethon \
-    # HTTP clients
     httpx \
     aiohttp \
-    # Web scraping
-    lxml \
-    playwright \
-    # Data processing
-    pandas \
-    # CLI tools
     yt-dlp \
-    # AI/ML integrations
     openai \
     anthropic \
-    # Task automation
     schedule \
-    # Rich terminal output
     rich \
-    # Progress bars
     tqdm
 
 # Use the existing 'node' user (UID 1000) from the base image
@@ -284,4 +273,4 @@ EXPOSE 7681 18789
 
 # Start with auto-config script
 CMD ["/usr/local/bin/startup.sh"]
-# Rebuilt 2026-01-29T02:50:00Z
+# Rebuilt 2026-01-29T03:00:00Z

@@ -6,6 +6,19 @@
 # Don't exit on error - we want ttyd to start even if other things fail
 set +e
 
+# Fix permissions on mounted volumes (runs as root, then switches to dev)
+if [ "$(id -u)" = "0" ]; then
+  # Ensure dev user owns all the data directories
+  chown -R dev:dev /home/dev 2>/dev/null || true
+  
+  # Re-run this script as dev user
+  exec su-exec dev "$0" "$@"
+fi
+
+# Now running as dev user
+export HOME=/home/dev
+cd "$HOME"
+
 # Chromium flags for Docker/CI environments (no sandbox needed)
 export CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"
 export PLAYWRIGHT_CHROMIUM_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"

@@ -17,6 +17,7 @@ RUN apk add --no-cache \
     bash \
     jq \
     openssh-client \
+    su-exec \
     # Web terminal
     ttyd \
     # Browser automation
@@ -82,8 +83,9 @@ RUN adduser -D -s /bin/bash dev && \
 COPY docker/startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 
-# Switch to dev user
-USER dev
+# Run as root - startup script will handle permissions and switch to dev user
+# This avoids permission issues with mounted volumes
+USER root
 
 # Set up bash as default shell
 ENV SHELL=/bin/bash

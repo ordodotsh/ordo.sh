@@ -242,11 +242,12 @@ EOF
 chmod +x "$HOME/Desktop/moltbot.desktop"
 
 # Set up VNC password for KasmVNC (uses different format than traditional VNC)
+# Password must be at least 6 characters
 mkdir -p "$HOME/.vnc"
-VNC_PASS="${VNC_PASSWORD:-ordo}"
+VNC_PASS="${VNC_PASSWORD:-ordodesktop}"
 
 # KasmVNC password setup - pipe password twice (password + confirm)
-echo -e "${VNC_PASS}\n${VNC_PASS}\n" | vncpasswd -u node -ow
+echo -e "${VNC_PASS}\n${VNC_PASS}\n" | vncpasswd -u node -ow 2>/dev/null || true
 
 # Create xstartup for KasmVNC
 cat > "$HOME/.vnc/xstartup" << 'EOF'

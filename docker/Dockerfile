@@ -134,9 +134,11 @@ RUN wget -qO /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest
     chmod +x /usr/local/bin/ttyd
 
 # Install KasmVNC (browser-based remote desktop)
-RUN KASM_VERSION="1.3.2" && \
+# libdatetime-perl is required by vncserver script
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libdatetime-perl && \
+    KASM_VERSION="1.3.2" && \
     wget -qO /tmp/kasmvnc.deb "https://github.com/kasmtech/KasmVNC/releases/download/v${KASM_VERSION}/kasmvncserver_bookworm_${KASM_VERSION}_amd64.deb" && \
-    apt-get update && \
     apt-get install -y --no-install-recommends /tmp/kasmvnc.deb && \
     rm -f /tmp/kasmvnc.deb && \
     rm -rf /var/lib/apt/lists/*
@@ -329,8 +331,8 @@ ENV GIT_AUTHOR_EMAIL=""
 ENV GIT_COMMITTER_NAME=""
 ENV GIT_COMMITTER_EMAIL=""
 
-# VNC password (can be overridden at runtime)
-ENV VNC_PASSWORD="ordo"
+# VNC password (can be overridden at runtime, must be 6+ characters for KasmVNC)
+ENV VNC_PASSWORD="ordodesktop"
 
 # Expose ports:
 #   6901 = KasmVNC web interface (GUI desktop)

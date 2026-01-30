@@ -67,7 +67,16 @@ RUN apt-get update && apt-get install -y \
     tree \
     fzf \
     bat \
+    # Fonts and locale
+    fonts-noto-mono \
+    fonts-dejavu-core \
+    locales \
     && rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
+# LOCALE SETUP
+# ============================================================================
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 # ============================================================================
 # NODE.JS 22
@@ -140,6 +149,8 @@ RUN chmod +x /startup.sh
 # ENVIRONMENT VARIABLES
 # ============================================================================
 ENV DISPLAY=:1 \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
     VNC_PASSWORD=ordo \
     VNC_RESOLUTION=1920x1080 \
     ORDO_AUTO_CONFIG="" \

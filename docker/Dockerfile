@@ -175,14 +175,9 @@ RUN npm install -g \
     undici@latest
 
 # ============================================================================
-# UV (Modern Python package manager - 10-100x faster than pip)
-# ============================================================================
-RUN curl -LsSf https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /usr/local/bin --strip-components=1
-
-# ============================================================================
 # PYTHON AI TOOLS
 # ============================================================================
-RUN uv pip install --system --no-cache \
+RUN pip3 install --no-cache-dir --break-system-packages \
     aider-chat \
     open-interpreter \
     browser-use \

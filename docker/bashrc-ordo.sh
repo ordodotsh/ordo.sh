@@ -33,8 +33,6 @@ alias pr="pnpm run"
 
 # Python shortcuts
 alias py="python3"
-alias pip="uv pip"
-alias venv="uv venv"
 
 # AI tool aliases
 # OpenClaw aliases (ordo = main command)

@@ -1,26 +1,35 @@
 # Ordo.sh - Cloud AI Desktop Environment
-# Full GUI desktop with latest tools for AI-powered development
+# Simple Ubuntu + XFCE + noVNC
 # Container: ghcr.io/ordodotsh/ordo-bot
 #
-# Features:
-#   - Full desktop environment (KasmWeb 1.17.0)
-#   - Browser-based remote desktop (port 6901)
-#   - Web terminal via ttyd (port 7681)
-#   - Latest Node.js, Python, Bun, Go, Rust
-#   - All modern AI coding tools pre-installed
+# Ports:
+#   6080 = noVNC web interface (browser-based desktop)
+#   7681 = ttyd web terminal
+#   18789 = OpenClaw gateway
 #
-FROM kasmweb/desktop:1.17.0
+FROM ubuntu:24.04
 
-USER root
-
-# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
+ENV USER=ordo
+ENV HOME=/home/ordo
 
 # ============================================================================
-# SYSTEM PACKAGES (latest from repos)
+# SYSTEM PACKAGES
 # ============================================================================
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
+    # Desktop environment
+    xfce4 \
+    xfce4-terminal \
+    dbus-x11 \
+    # VNC + noVNC
+    tigervnc-standalone-server \
+    tigervnc-common \
+    novnc \
+    websockify \
+    # Browser
+    chromium-browser \
     # Core tools
+    sudo \
     git \
     git-lfs \
     curl \
@@ -29,84 +38,44 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     ca-certificates \
     gnupg \
-    lsb-release \
-    # Terminal multiplexer & tools
+    # Terminal tools
     tmux \
-    screen \
-    zsh \
-    # Media processing
+    htop \
+    neovim \
+    # Media
     ffmpeg \
     imagemagick \
-    # Audio tools
-    sox \
-    libsox-fmt-all \
-    opus-tools \
-    # Python build dependencies
+    # Python
     python3 \
     python3-pip \
     python3-venv \
-    python3-dev \
-    python3-setuptools \
-    # Development tools
+    # Build tools
     build-essential \
-    g++ \
-    gcc \
-    make \
-    cmake \
-    pkg-config \
-    libssl-dev \
-    libffi-dev \
     # File utilities
     zip \
     unzip \
-    p7zip-full \
     rsync \
-    # Process management
-    htop \
     # Network tools
     dnsutils \
     netcat-openbsd \
     socat \
-    openssl \
-    iputils-ping \
-    net-tools \
     # Database clients
     sqlite3 \
-    postgresql-client \
-    mariadb-client \
-    # Additional dev tools
+    # Dev tools
     ripgrep \
     fd-find \
     tree \
     fzf \
     bat \
-    # Editors
-    neovim \
     && rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
-# NODE.JS (Latest LTS via NodeSource)
+# NODE.JS 22
 # ============================================================================
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g npm@latest && \
     rm -rf /var/lib/apt/lists/*
-
-# ============================================================================
-# GO (Latest stable)
-# ============================================================================
-RUN curl -fsSL https://go.dev/dl/go1.23.5.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
-    ln -sf /usr/local/go/bin/go /usr/local/bin/go && \
-    ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
-
-# ============================================================================
-# RUST (Latest stable via rustup)
-# ============================================================================
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal && \
-    chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
 # ============================================================================
 # GITHUB CLI
@@ -118,181 +87,85 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
-# CLI TOOLS (latest releases)
+# CLI TOOLS
 # ============================================================================
-# yq - YAML/JSON processor
-RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && \
-    chmod +x /usr/local/bin/yq
-
-# ttyd - Web terminal
+# ttyd (web terminal)
 RUN wget -qO /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64 && \
     chmod +x /usr/local/bin/ttyd
 
-# lazygit - Terminal UI for git
-RUN LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*') && \
-    curl -Lo /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz" && \
-    tar xf /tmp/lazygit.tar.gz -C /usr/local/bin lazygit && \
-    rm /tmp/lazygit.tar.gz
-
-# AWS CLI v2
-RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" && \
-    unzip -q /tmp/awscliv2.zip -d /tmp && \
-    /tmp/aws/install && \
-    rm -rf /tmp/aws /tmp/awscliv2.zip
+# yq
+RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && \
+    chmod +x /usr/local/bin/yq
 
 # ============================================================================
-# NODE.JS GLOBAL PACKAGES (latest versions)
+# NODE.JS GLOBAL PACKAGES
 # ============================================================================
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-
 RUN npm install -g \
     pnpm@latest \
-    yarn@latest \
     openclaw@latest \
-    vercel@latest \
-    netlify-cli@latest \
-    wrangler@latest \
-    firebase-tools@latest \
-    @railway/cli@latest \
     typescript@latest \
     ts-node@latest \
     tsx@latest \
-    eslint@latest \
-    prettier@latest \
+    vercel@latest \
     pm2@latest \
-    nodemon@latest \
-    serve@latest \
-    http-server@latest \
-    localtunnel@latest \
-    turbo@latest \
-    vite@latest \
-    esbuild@latest \
-    vitest@latest \
-    playwright@latest \
-    npm-check-updates@latest \
-    depcheck@latest \
-    httpyac@latest \
-    undici@latest
+    serve@latest
 
 # ============================================================================
-# PYTHON AI TOOLS
+# PYTHON PACKAGES
 # ============================================================================
 RUN pip3 install --no-cache-dir --break-system-packages \
-    aider-chat \
-    open-interpreter \
-    browser-use \
-    playwright \
     anthropic \
     openai \
-    litellm \
-    langchain \
-    langchain-anthropic \
-    langchain-openai \
-    pandas \
-    numpy \
     requests \
     httpx \
     beautifulsoup4 \
     pyyaml \
     python-dotenv \
-    rich \
-    typer \
-    jupyterlab \
-    ipython
-
-# Install Playwright browsers for Python
-RUN playwright install chromium firefox
+    rich
 
 # ============================================================================
-# STARSHIP PROMPT (modern cross-shell prompt)
+# CREATE USER
 # ============================================================================
-RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
+RUN useradd -m -s /bin/bash -G sudo $USER && \
+    echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================================================
-# USER SETUP
+# SETUP DIRECTORIES
 # ============================================================================
-# Create workspace directories for kasm-user
-RUN mkdir -p /home/kasm-user/workspace /home/kasm-user/.ssh /home/kasm-user/.config /home/kasm-user/.openclaw /home/kasm-user/ordo && \
-    chown -R 1000:1000 /home/kasm-user
+RUN mkdir -p $HOME/.vnc $HOME/.openclaw $HOME/ordo $HOME/Desktop && \
+    chown -R $USER:$USER $HOME
 
-# Initialize git-lfs
-RUN git lfs install --system
-
-# Copy bashrc configuration
+# ============================================================================
+# BASHRC CONFIG
+# ============================================================================
 COPY docker/bashrc-ordo.sh /tmp/bashrc-ordo.sh
-RUN cat /tmp/bashrc-ordo.sh >> /home/kasm-user/.bashrc && \
-    chown 1000:1000 /home/kasm-user/.bashrc && \
+RUN cat /tmp/bashrc-ordo.sh >> $HOME/.bashrc && \
+    chown $USER:$USER $HOME/.bashrc && \
     rm /tmp/bashrc-ordo.sh
 
-# Create desktop shortcuts
-RUN mkdir -p /home/kasm-user/Desktop && \
-    printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=Ordo Terminal\nComment=AI Assistant\nExec=xfce4-terminal -e "bash -l"\nIcon=utilities-terminal\nTerminal=false\nCategories=Development;\n' > /home/kasm-user/Desktop/ordo.desktop && \
-    chmod +x /home/kasm-user/Desktop/ordo.desktop && \
-    chown 1000:1000 /home/kasm-user/Desktop/ordo.desktop
-
-# Copy startup script for OpenClaw auto-config
-COPY docker/startup.sh /dockerstartup/startup.sh
-RUN chmod +x /dockerstartup/startup.sh
+# ============================================================================
+# STARTUP SCRIPT
+# ============================================================================
+COPY docker/startup.sh /startup.sh
+RUN chmod +x /startup.sh
 
 # ============================================================================
 # ENVIRONMENT VARIABLES
 # ============================================================================
-ENV USER_WALLET="" \
+ENV DISPLAY=:1 \
+    VNC_PASSWORD=ordo \
+    VNC_RESOLUTION=1920x1080 \
     ORDO_AUTO_CONFIG="" \
     ANTHROPIC_API_KEY="" \
     OPENAI_API_KEY="" \
-    GEMINI_API_KEY="" \
-    GOOGLE_API_KEY="" \
     TELEGRAM_TOKEN="" \
-    TELEGRAM_API_ID="" \
-    TELEGRAM_API_HASH="" \
-    TELEGRAM_PHONE="" \
     DISCORD_TOKEN="" \
-    SLACK_TOKEN="" \
-    WHATSAPP_TOKEN="" \
-    EMAIL_IMAP_HOST="" \
-    EMAIL_IMAP_USER="" \
-    EMAIL_IMAP_PASS="" \
-    EMAIL_SMTP_HOST="" \
-    GITHUB_TOKEN="" \
-    VERCEL_TOKEN="" \
-    NETLIFY_AUTH_TOKEN="" \
-    CLOUDFLARE_API_TOKEN="" \
-    RAILWAY_TOKEN="" \
-    FIREBASE_TOKEN="" \
-    BRAVE_API_KEY="" \
-    TRELLO_API_KEY="" \
-    TRELLO_TOKEN="" \
-    NOTION_API_KEY="" \
-    LINEAR_API_KEY="" \
-    JIRA_API_TOKEN="" \
-    AIRTABLE_API_KEY="" \
-    SENDGRID_API_KEY="" \
-    TWILIO_ACCOUNT_SID="" \
-    TWILIO_AUTH_TOKEN="" \
-    STRIPE_SECRET_KEY="" \
-    AWS_ACCESS_KEY_ID="" \
-    AWS_SECRET_ACCESS_KEY="" \
-    AWS_DEFAULT_REGION="" \
-    GIT_AUTHOR_NAME="" \
-    GIT_AUTHOR_EMAIL="" \
-    GIT_COMMITTER_NAME="" \
-    GIT_COMMITTER_EMAIL=""
+    SLACK_TOKEN=""
 
-# Browser configuration for OpenClaw
-ENV CHROME_BIN=/usr/bin/chromium \
-    CHROMIUM_PATH=/usr/bin/chromium \
-    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium \
-    CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
+# Expose ports
+EXPOSE 6080 7681 18789
 
-# Go path
-ENV GOPATH=/home/kasm-user/go \
-    PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
+USER $USER
+WORKDIR $HOME
 
-# Expose ports:
-#   6901 = KasmVNC web interface (GUI desktop)
-#   7681 = ttyd terminal
-#   18789 = OpenClaw gateway
-EXPOSE 6901 7681 18789
-
-# Use KasmWeb's default entrypoint
+CMD ["/startup.sh"]

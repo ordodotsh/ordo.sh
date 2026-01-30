@@ -7,7 +7,7 @@
 #   3. Open http://localhost:6901 for desktop GUI
 #
 # Ports:
-#   6901  - Desktop GUI (KasmVNC web interface)
+#   6080  - Desktop GUI (noVNC web interface)
 #   7681  - Web Terminal (ttyd)
 #   18789 - OpenClaw Gateway API
 
@@ -25,7 +25,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "6901:6901"   # Desktop GUI (KasmVNC)
+      - "6080:6080"   # Desktop GUI (noVNC)
       - "7681:7681"   # Web Terminal (ttyd)
       - "18789:18789" # OpenClaw Gateway
 
@@ -71,10 +71,9 @@ services:
 
     volumes:
       # Persistent storage
-      - ordo-workspace:/home/kasm-user/ordo
-      - ordo-config:/home/kasm-user/.openclaw
-      - ordo-ssh:/home/kasm-user/.ssh
-      - ordo-desktop:/home/kasm-user/Desktop
+      - ordo-workspace:/home/ordo/ordo
+      - ordo-config:/home/ordo/.openclaw
+      - ordo-ssh:/home/ordo/.ssh
 
       # Optional: Mount local directories
       # - ./workspace:/home/kasm-user/workspace
@@ -97,7 +96,7 @@ services:
 
     # Health check
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6901"]
+      test: ["CMD", "curl", "-f", "http://localhost:6080"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -110,5 +109,3 @@ volumes:
     name: ordo-config
   ordo-ssh:
     name: ordo-ssh
-  ordo-desktop:
-    name: ordo-desktop

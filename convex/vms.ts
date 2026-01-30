@@ -109,9 +109,8 @@ docker run -d \\
     --restart unless-stopped \\
     --network host \\
     ${envFlags} \\
-    -v /opt/ordo/data/.openclaw:/home/kasm-user/.openclaw \\
-    -v /opt/ordo/data/workspace:/home/kasm-user/ordo \\
-    -v /opt/ordo/data/.config:/home/kasm-user/.config \\
+    -v /opt/ordo/data/.openclaw:/home/ordo/.openclaw \\
+    -v /opt/ordo/data/workspace:/home/ordo/ordo \\
     ${botImage}
 
 # Wait for container to start

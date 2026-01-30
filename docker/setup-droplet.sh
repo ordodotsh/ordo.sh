@@ -138,7 +138,7 @@ ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow ssh
-ufw allow 6901/tcp comment 'Ordo Desktop GUI'
+ufw allow 6080/tcp comment 'Ordo Desktop GUI'
 ufw allow 7681/tcp comment 'Ordo Web Terminal'
 ufw allow 18789/tcp comment 'OpenClaw Gateway'
 ufw --force enable
@@ -206,16 +206,16 @@ services:
     container_name: ordo
     restart: unless-stopped
     ports:
-      - "6901:6901"   # Desktop GUI (KasmVNC)
+      - "6080:6080"   # Desktop GUI (noVNC)
       - "7681:7681"   # Web Terminal (ttyd)
       - "18789:18789" # OpenClaw Gateway
     env_file:
       - .env
     volumes:
       # Persistent storage for your work
-      - ordo-workspace:/home/kasm-user/ordo
-      - ordo-config:/home/kasm-user/.openclaw
-      - ordo-ssh:/home/kasm-user/.ssh
+      - ordo-workspace:/home/ordo/ordo
+      - ordo-config:/home/ordo/.openclaw
+      - ordo-ssh:/home/ordo/.ssh
     shm_size: '2gb'  # Required for browser
     security_opt:
       - seccomp:unconfined  # Required for browser sandbox
@@ -274,7 +274,7 @@ echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  Ordo.sh is ready!${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
-echo -e "  ${BLUE}Desktop GUI:${NC}  http://${PUBLIC_IP}:6901"
+echo -e "  ${BLUE}Desktop GUI:${NC}  http://${PUBLIC_IP}:6080/vnc.html"
 echo -e "  ${BLUE}Web Terminal:${NC} http://${PUBLIC_IP}:7681"
 echo ""
 echo -e "  ${YELLOW}VNC Password:${NC} ${VNC_PASSWORD}"

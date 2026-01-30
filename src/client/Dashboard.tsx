@@ -1152,7 +1152,7 @@ export function Dashboard() {
                 {/* Access Buttons */}
                 <div style={styles.accessButtonsRow}>
                   <a
-                    href={`http://${vmRawIp}:6901`}
+                    href={`http://${vmRawIp}:6080/vnc.html`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{...styles.accessBtn, background: currentColors.green}}
@@ -1200,7 +1200,7 @@ export function Dashboard() {
                       </p>
                       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                         <button
-                          onClick={() => window.open(`http://${vmRawIp}:6901`, '_blank')}
+                          onClick={() => window.open(`http://${vmRawIp}:6080/vnc.html`, '_blank')}
                           style={{
                             background: currentColors.green,
                             color: '#fff',

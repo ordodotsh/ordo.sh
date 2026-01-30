@@ -111,19 +111,6 @@ RUN npm install -g \
     serve@latest
 
 # ============================================================================
-# PYTHON PACKAGES
-# ============================================================================
-RUN pip3 install --no-cache-dir --break-system-packages \
-    anthropic \
-    openai \
-    requests \
-    httpx \
-    beautifulsoup4 \
-    pyyaml \
-    python-dotenv \
-    rich
-
-# ============================================================================
 # CREATE USER
 # ============================================================================
 RUN useradd -m -s /bin/bash -G sudo $USER && \

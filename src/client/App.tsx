@@ -191,7 +191,7 @@ export function App() {
               Powered by <span style={styles.highlight}>Moltbot</span> — the open-source AI assistant with 60k+ GitHub stars
             </p>
             <a
-              href="https://github.com/moltbot/moltbot"
+              href="https://github.com/openclaw/openclaw"
               target="_blank"
               rel="noopener noreferrer"
               style={styles.githubLink}
@@ -243,7 +243,7 @@ export function App() {
             </a>
             <span style={styles.footerDot}>·</span>
             <a
-              href="https://github.com/moltbot/moltbot"
+              href="https://github.com/openclaw/openclaw"
               target="_blank"
               rel="noopener noreferrer"
               style={styles.footerLink}

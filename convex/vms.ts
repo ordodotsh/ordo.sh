@@ -95,13 +95,13 @@ sleep 5
 docker version
 
 # Create data directories with correct ownership (UID 1000 = kasm-user in container)
-mkdir -p /opt/ordo/data/.moltbot
+mkdir -p /opt/ordo/data/.openclaw
 mkdir -p /opt/ordo/data/workspace
 mkdir -p /opt/ordo/data/.config
 chown -R 1000:1000 /opt/ordo/data
 
 # Pull and run the ordo-bot container
-# The container has Chrome, Xvfb, ttyd, and moltbot all built-in
+# The container has Chrome, Xvfb, ttyd, and OpenClaw all built-in
 docker pull ${botImage}
 
 docker run -d \\
@@ -109,7 +109,7 @@ docker run -d \\
     --restart unless-stopped \\
     --network host \\
     ${envFlags} \\
-    -v /opt/ordo/data/.moltbot:/home/kasm-user/.moltbot \\
+    -v /opt/ordo/data/.openclaw:/home/kasm-user/.openclaw \\
     -v /opt/ordo/data/workspace:/home/kasm-user/ordo \\
     -v /opt/ordo/data/.config:/home/kasm-user/.config \\
     ${botImage}

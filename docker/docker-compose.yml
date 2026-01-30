@@ -9,7 +9,7 @@
 # Ports:
 #   6901  - Desktop GUI (KasmVNC web interface)
 #   7681  - Web Terminal (ttyd)
-#   18789 - Moltbot Gateway API
+#   18789 - OpenClaw Gateway API
 
 version: '3.8'
 
@@ -27,7 +27,7 @@ services:
     ports:
       - "6901:6901"   # Desktop GUI (KasmVNC)
       - "7681:7681"   # Web Terminal (ttyd)
-      - "18789:18789" # Moltbot Gateway
+      - "18789:18789" # OpenClaw Gateway
 
     environment:
       # VNC Settings
@@ -35,7 +35,7 @@ services:
       - VNC_RESOLUTION=${VNC_RESOLUTION:-1920x1080}
       - VNC_COL_DEPTH=${VNC_COL_DEPTH:-24}
 
-      # Auto-configure moltbot
+      # Auto-configure OpenClaw
       - ORDO_AUTO_CONFIG=${ORDO_AUTO_CONFIG:-true}
 
       # AI Provider Keys
@@ -72,7 +72,7 @@ services:
     volumes:
       # Persistent storage
       - ordo-workspace:/home/kasm-user/ordo
-      - ordo-config:/home/kasm-user/.moltbot
+      - ordo-config:/home/kasm-user/.openclaw
       - ordo-ssh:/home/kasm-user/.ssh
       - ordo-desktop:/home/kasm-user/Desktop
 

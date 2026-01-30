@@ -23,7 +23,7 @@ export default defineSchema({
     expiresAt: v.optional(v.number()),
   }).index("by_user", ["userId"]),
 
-  // VMs - one per user, running moltbot on DigitalOcean
+  // VMs - one per user, running OpenClaw on DigitalOcean
   vms: defineTable({
     userId: v.id("users"),
     // DigitalOcean fields
@@ -47,7 +47,7 @@ export default defineSchema({
   })
     .index("by_user", ["userId"]),
 
-  // User credentials - API keys for moltbot
+  // User credentials - API keys for OpenClaw
   credentials: defineTable({
     userId: v.id("users"),
     anthropicKey: v.optional(v.string()),

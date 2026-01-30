@@ -1,85 +1,37 @@
 #!/bin/bash
 # Ordo.sh - Auto-configuration startup script with Desktop GUI
-# Moltbot (formerly Clawdbot) - https://moltbot.ai / https://docs.moltbot.ai
-# This script auto-configures Moltbot and starts KasmVNC desktop
+# OpenClaw - https://openclaw.ai / https://docs.openclaw.ai
+# This script auto-configures OpenClaw and starts KasmVNC desktop
 
 # Don't exit on error - we want services to start even if other things fail
 set +e
 
-# Fix permissions on mounted volumes (runs as root, then switches to node)
-if [ "$(id -u)" = "0" ]; then
-  # Ensure node user owns all the data directories
-  chown -R node:node /home/node 2>/dev/null || true
-
-  # Start dbus (required for desktop)
-  mkdir -p /run/dbus
-  dbus-daemon --system --fork 2>/dev/null || true
-
-  # Re-run this script as node user
-  exec su -s /bin/bash node -c "$0 $*"
-fi
-
-# Now running as node user
-export HOME=/home/node
+# The KasmWeb base image runs as kasm-user (UID 1000)
+export HOME=/home/kasm-user
 cd "$HOME"
 
 # Chromium flags for Docker/CI environments
 export CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"
 export PLAYWRIGHT_CHROMIUM_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
 
-CONFIG_DIR="$HOME/.moltbot"
-CONFIG_FILE="$CONFIG_DIR/moltbot.json"
+CONFIG_DIR="$HOME/.openclaw"
+CONFIG_FILE="$CONFIG_DIR/openclaw.json"
 
 # Create config directory and workspace
 mkdir -p "$CONFIG_DIR"
 mkdir -p "$HOME/ordo"
 mkdir -p "$HOME/Desktop"
 mkdir -p "$HOME/.vnc"
+mkdir -p "$HOME/.config"
 
-# Make .profile source .bashrc
-echo '[ -f ~/.bashrc ] && source ~/.bashrc' >> "$HOME/.profile"
-
-# Create 'ordo' alias and welcome message in .bashrc
-cat >> "$HOME/.bashrc" << 'BASHRC'
-# Ordo.sh configuration
-alias ordo="moltbot"
-alias molt="moltbot"
-
-# Welcome message (only show once per session)
-if [ -z "$ORDO_WELCOMED" ]; then
-  export ORDO_WELCOMED=1
-  echo ""
-  echo "  ░█▀█░█▀▄░█▀▄░█▀█"
-  echo "  ░█░█░█▀▄░█░█░█░█"
-  echo "  ░▀▀▀░▀░▀░▀▀░░▀▀▀"
-  echo ""
-  echo "  Welcome to Ordo"
-  echo "  Your AI Desktop in the Cloud"
-  echo ""
-  echo "  Access Points:"
-  echo "    Desktop GUI:  http://localhost:6901"
-  echo "    Web Terminal: http://localhost:7681"
-  echo ""
-  echo "  Commands:"
-  echo "    moltbot status   - Check bot status"
-  echo "    moltbot doctor   - Diagnose issues"
-  echo "    moltbot --help   - All commands"
-  echo ""
-  # Check if gateway is running
-  if pgrep -f "moltbot gateway" > /dev/null 2>&1; then
-    echo "  Bot is running! Message your bot to chat."
-  else
-    echo "  Bot starting... run 'moltbot status' to check."
-  fi
-  echo ""
-fi
-BASHRC
+# Source bashrc for aliases
+source "$HOME/.bashrc" 2>/dev/null || true
 
 # Check if we should auto-configure
 if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
-  # Silent auto-configuration (output goes to log)
+  echo "[ordo] Starting auto-configuration..."
 
-  # Start building the config JSON with proper moltbot structure
+  # Start building the config JSON with proper OpenClaw structure
   config='{
     "agents": {
       "defaults": {
@@ -100,24 +52,28 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   if [ -n "$TELEGRAM_TOKEN" ]; then
     config=$(echo "$config" | jq '.channels.telegram = { "enabled": true }')
     export TELEGRAM_BOT_TOKEN="$TELEGRAM_TOKEN"
+    echo "[ordo] Telegram channel enabled"
   fi
 
   # Add Discord channel if token provided
   if [ -n "$DISCORD_TOKEN" ]; then
     config=$(echo "$config" | jq '.channels.discord = { "enabled": true }')
     export DISCORD_BOT_TOKEN="$DISCORD_TOKEN"
+    echo "[ordo] Discord channel enabled"
   fi
 
   # Add Slack channel if token provided
   if [ -n "$SLACK_TOKEN" ]; then
     config=$(echo "$config" | jq '.channels.slack = { "enabled": true }')
     export SLACK_BOT_TOKEN="$SLACK_TOKEN"
+    echo "[ordo] Slack channel enabled"
   fi
 
   # Add WhatsApp channel if token provided
   if [ -n "$WHATSAPP_TOKEN" ]; then
     config=$(echo "$config" | jq '.channels.whatsapp = { "enabled": true }')
     export WHATSAPP_BOT_TOKEN="$WHATSAPP_TOKEN"
+    echo "[ordo] WhatsApp channel enabled"
   fi
 
   # Write config file
@@ -127,10 +83,15 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   channel_count=$(echo "$config" | jq '.channels | length')
 
   # Generate gateway auth token (silent)
-  moltbot config set gateway.auth.mode token 2>/dev/null || true
+  openclaw config set gateway.auth.mode token 2>/dev/null || true
 
-  # Save ALL env vars (before starting gateway)
-  # AI Provider Keys
+  # Save ALL env vars to bashrc for persistence
+  cat >> "$HOME/.bashrc" << ENVVARS
+
+# Ordo.sh environment variables (auto-configured)
+# AI Provider Keys
+ENVVARS
+
   [ -n "$ANTHROPIC_API_KEY" ] && echo "export ANTHROPIC_API_KEY='$ANTHROPIC_API_KEY'" >> "$HOME/.bashrc"
   [ -n "$OPENAI_API_KEY" ] && echo "export OPENAI_API_KEY='$OPENAI_API_KEY'" >> "$HOME/.bashrc"
   [ -n "$GEMINI_API_KEY" ] && echo "export GEMINI_API_KEY='$GEMINI_API_KEY'" >> "$HOME/.bashrc"
@@ -168,24 +129,30 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
   [ -n "$EMAIL_IMAP_PASS" ] && echo "export EMAIL_IMAP_PASS='$EMAIL_IMAP_PASS'" >> "$HOME/.bashrc"
   [ -n "$EMAIL_SMTP_HOST" ] && echo "export EMAIL_SMTP_HOST='$EMAIL_SMTP_HOST'" >> "$HOME/.bashrc"
 
-  # Start moltbot gateway in the background if API key is set and channels configured
+  # Start OpenClaw gateway in the background if API key is set and channels configured
   if [ -n "$ANTHROPIC_API_KEY" ] && [ "$channel_count" -gt 0 ]; then
+    echo "[ordo] Running openclaw doctor --fix..."
     # Run doctor --fix to enable configured channels
     ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
     TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
     DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \
     SLACK_BOT_TOKEN="$SLACK_BOT_TOKEN" \
     WHATSAPP_BOT_TOKEN="$WHATSAPP_BOT_TOKEN" \
-    moltbot doctor --fix 2>/dev/null || true
+    openclaw doctor --fix 2>/dev/null || true
 
+    echo "[ordo] Starting openclaw gateway..."
     # Start the gateway with env vars explicitly passed
     ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
     TELEGRAM_BOT_TOKEN="$TELEGRAM_BOT_TOKEN" \
     DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" \
     SLACK_BOT_TOKEN="$SLACK_BOT_TOKEN" \
     WHATSAPP_BOT_TOKEN="$WHATSAPP_BOT_TOKEN" \
-    nohup moltbot gateway --port 18789 --verbose > "$HOME/.moltbot/moltbot.log" 2>&1 &
+    nohup openclaw gateway --port 18789 --verbose > "$HOME/.openclaw/openclaw.log" 2>&1 &
+    
+    echo "[ordo] Gateway started (check ~/.openclaw/openclaw.log for logs)"
   fi
+  
+  echo "[ordo] Auto-configuration complete!"
 fi
 
 # Create desktop shortcuts
@@ -228,26 +195,38 @@ Categories=System;FileManager;
 EOF
 chmod +x "$HOME/Desktop/files.desktop"
 
-cat > "$HOME/Desktop/moltbot.desktop" << 'EOF'
+cat > "$HOME/Desktop/ordo.desktop" << 'EOF'
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Moltbot
+Name=Ordo
 Comment=AI Assistant
-Exec=xfce4-terminal -e "moltbot"
+Exec=xfce4-terminal -e "openclaw"
 Icon=utilities-terminal
 Terminal=false
 Categories=Development;
 EOF
-chmod +x "$HOME/Desktop/moltbot.desktop"
+chmod +x "$HOME/Desktop/ordo.desktop"
 
-# Set up VNC password for KasmVNC (uses different format than traditional VNC)
-# Password must be at least 6 characters
+cat > "$HOME/Desktop/code.desktop" << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=VS Code (Web)
+Comment=Open VS Code in browser
+Exec=chromium --no-sandbox --app=https://vscode.dev
+Icon=code
+Terminal=false
+Categories=Development;
+EOF
+chmod +x "$HOME/Desktop/code.desktop" 2>/dev/null || true
+
+# Set up VNC password for KasmVNC
 mkdir -p "$HOME/.vnc"
 VNC_PASS="${VNC_PASSWORD:-ordodesktop}"
 
-# KasmVNC password setup - pipe password twice (password + confirm)
-echo -e "${VNC_PASS}\n${VNC_PASS}\n" | vncpasswd -u node -ow 2>/dev/null || true
+# KasmVNC password setup
+echo -e "${VNC_PASS}\n${VNC_PASS}\n" | vncpasswd -u kasm-user -ow 2>/dev/null || true
 
 # Create xstartup for KasmVNC
 cat > "$HOME/.vnc/xstartup" << 'EOF'
@@ -261,8 +240,8 @@ exec startxfce4
 EOF
 chmod +x "$HOME/.vnc/xstartup"
 
-# Start KasmVNC server (no auth for simplicity - protected by firewall)
-echo "Starting KasmVNC desktop on port 6901..."
+# Start KasmVNC server
+echo "[ordo] Starting KasmVNC desktop on port 6901..."
 vncserver :1 \
   -geometry "${VNC_RESOLUTION:-1920x1080}" \
   -depth "${VNC_COL_DEPTH:-24}" \
@@ -275,5 +254,6 @@ vncserver :1 \
 sleep 2
 
 # Start ttyd with bash (terminal access on port 7681)
-echo "Starting web terminal on port 7681..."
+echo "[ordo] Starting web terminal on port 7681..."
+echo "[ordo] Desktop ready!"
 exec ttyd -W -p 7681 -i 0.0.0.0 bash -l

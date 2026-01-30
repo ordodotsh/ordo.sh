@@ -241,11 +241,12 @@ Categories=Development;
 EOF
 chmod +x "$HOME/Desktop/moltbot.desktop"
 
-# Set up VNC password
+# Set up VNC password for KasmVNC (uses different format than traditional VNC)
 mkdir -p "$HOME/.vnc"
 VNC_PASS="${VNC_PASSWORD:-ordo}"
-echo "$VNC_PASS" | vncpasswd -f > "$HOME/.vnc/passwd"
-chmod 600 "$HOME/.vnc/passwd"
+
+# KasmVNC password setup - pipe password twice (password + confirm)
+echo -e "${VNC_PASS}\n${VNC_PASS}\n" | vncpasswd -u node -ow
 
 # Create xstartup for KasmVNC
 cat > "$HOME/.vnc/xstartup" << 'EOF'
@@ -259,16 +260,15 @@ exec startxfce4
 EOF
 chmod +x "$HOME/.vnc/xstartup"
 
-# Start KasmVNC server
+# Start KasmVNC server (no auth for simplicity - protected by firewall)
 echo "Starting KasmVNC desktop on port 6901..."
 vncserver :1 \
   -geometry "${VNC_RESOLUTION:-1920x1080}" \
   -depth "${VNC_COL_DEPTH:-24}" \
   -websocketPort 6901 \
-  -httpd /usr/share/kasmvnc/www \
   -disableBasicAuth \
-  -PublicIP 0.0.0.0 \
-  2>/dev/null &
+  -SecurityTypes None \
+  2>&1 &
 
 # Wait for VNC to start
 sleep 2

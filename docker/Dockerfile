@@ -1,19 +1,23 @@
 # Ordo.sh - Cloud Moltbot Environment with Full Desktop GUI
-# Moltbot (formerly Clawdbot) - https://clawd.bot / https://docs.clawd.bot
+# Moltbot - https://moltbot.ai / https://docs.moltbot.ai
 # Container: ghcr.io/ordodotsh/ordo-bot
 #
 # Features:
-#   - Full XFCE4 desktop environment
-#   - KasmVNC for browser-based remote desktop (port 6901)
+#   - Full desktop environment (based on KasmWeb)
+#   - Browser-based remote desktop (port 6901)
 #   - Web terminal via ttyd (port 7681)
 #   - All development tools and CLIs
 #
-FROM node:22-bookworm
+FROM kasmweb/desktop:1.16.1
 
-WORKDIR /home/node
+USER root
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Node.js 22.x
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -22,38 +26,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git-lfs \
     curl \
     wget \
-    bash \
-    bash-completion \
     jq \
     openssh-client \
-    sudo \
-    ca-certificates \
-    gnupg \
-    lsb-release \
-    software-properties-common \
-    apt-transport-https \
-    locales \
     # Terminal multiplexer & tools
     tmux \
     screen \
-    less \
-    # Desktop environment (XFCE4 - lightweight but full-featured)
-    xfce4 \
-    xfce4-terminal \
-    xfce4-goodies \
-    dbus-x11 \
-    x11-xserver-utils \
-    x11-utils \
-    xdg-utils \
-    # Fonts for GUI
-    fonts-dejavu \
-    fonts-liberation \
-    fonts-noto \
-    fonts-noto-color-emoji \
-    fontconfig \
-    # Browser
-    chromium \
-    chromium-sandbox \
     # Media processing
     ffmpeg \
     imagemagick \
@@ -61,9 +38,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sox \
     libsox-fmt-all \
     opus-tools \
-    pulseaudio \
-    # Virtual display
-    xvfb \
     # Python
     python3 \
     python3-pip \
@@ -72,13 +46,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-requests \
     python3-yaml \
     python3-bs4 \
-    # Text editors
-    vim \
-    nano \
-    # GUI text editor
-    mousepad \
-    # File manager
-    thunar \
     # Development tools
     build-essential \
     g++ \
@@ -87,23 +54,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # File utilities
     zip \
     unzip \
-    tar \
-    gzip \
-    bzip2 \
-    xz-utils \
     p7zip-full \
     rsync \
     # Process management
     htop \
-    procps \
     # Network tools
     dnsutils \
     netcat-openbsd \
     socat \
     openssl \
-    mtr \
-    traceroute \
-    whois \
     iputils-ping \
     net-tools \
     # GitHub CLI
@@ -119,10 +78,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tree \
     fzf \
     bat \
-    # Timezone data
-    tzdata \
-    # Cron for scheduled tasks
-    cron \
     && rm -rf /var/lib/apt/lists/*
 
 # Install yq (not in Debian repos by default)
@@ -132,16 +87,6 @@ RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/d
 # Install ttyd (web terminal)
 RUN wget -qO /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64 && \
     chmod +x /usr/local/bin/ttyd
-
-# Install KasmVNC (browser-based remote desktop)
-# libdatetime-perl is required by vncserver script
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libdatetime-perl && \
-    KASM_VERSION="1.3.2" && \
-    wget -qO /tmp/kasmvnc.deb "https://github.com/kasmtech/KasmVNC/releases/download/v${KASM_VERSION}/kasmvncserver_bookworm_${KASM_VERSION}_amd64.deb" && \
-    apt-get install -y --no-install-recommends /tmp/kasmvnc.deb && \
-    rm -f /tmp/kasmvnc.deb && \
-    rm -rf /var/lib/apt/lists/*
 
 # Install AWS CLI v2
 RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" && \
@@ -195,28 +140,14 @@ RUN pip3 install --break-system-packages \
     rich \
     tqdm
 
-# Set up locale
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
+# Initialize git-lfs
+RUN git lfs install --system
 
-# Create workspace directories for node user
-RUN mkdir -p /home/node/workspace /home/node/.ssh /home/node/.config /home/node/.moltbot /home/node/ordo /home/node/Desktop && \
-    chown -R node:node /home/node
+# Create workspace directories for kasm-user
+RUN mkdir -p /home/kasm-user/workspace /home/kasm-user/.ssh /home/kasm-user/.config /home/kasm-user/.moltbot /home/kasm-user/ordo && \
+    chown -R 1000:1000 /home/kasm-user
 
-# Allow node user to use sudo without password
-RUN echo "node ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/node && \
-    chmod 0440 /etc/sudoers.d/node
-
-# Configure KasmVNC for node user
-RUN mkdir -p /home/node/.vnc && \
-    echo "node:ordo" | chpasswd && \
-    chown -R node:node /home/node/.vnc
-
-# KasmVNC config is set via command-line args in startup.sh
-
-# Configure bash with useful defaults
+# Configure bash with useful defaults for kasm-user
 RUN echo '\n\
 # Ordo.sh bash config\n\
 export PS1="\\[\\033[1;32m\\]ordo\\[\\033[0m\\]:\\[\\033[1;34m\\]\\w\\[\\033[0m\\]\\$ "\n\
@@ -241,36 +172,46 @@ alias ni="npm install"\n\
 alias nr="npm run"\n\
 alias pi="pnpm install"\n\
 alias pr="pnpm run"\n\
-# Enable bash completion\n\
-[ -f /etc/bash_completion ] && source /etc/bash_completion\n\
-' >> /home/node/.bashrc && chown node:node /home/node/.bashrc
+# Moltbot aliases\n\
+alias ordo="moltbot"\n\
+alias molt="moltbot"\n\
+\n\
+# Welcome message (only show once per session)\n\
+if [ -z "$ORDO_WELCOMED" ]; then\n\
+  export ORDO_WELCOMED=1\n\
+  echo ""\n\
+  echo "  ░█▀█░█▀▄░█▀▄░█▀█"\n\
+  echo "  ░█░█░█▀▄░█░█░█░█"\n\
+  echo "  ░▀▀▀░▀░▀░▀▀░░▀▀▀"\n\
+  echo ""\n\
+  echo "  Welcome to Ordo"\n\
+  echo "  Your AI Desktop in the Cloud"\n\
+  echo ""\n\
+  echo "  Commands:"\n\
+  echo "    moltbot status   - Check bot status"\n\
+  echo "    moltbot doctor   - Diagnose issues"\n\
+  echo "    moltbot --help   - All commands"\n\
+  echo ""\n\
+fi\n\
+' >> /home/kasm-user/.bashrc && chown 1000:1000 /home/kasm-user/.bashrc
 
-# Initialize git-lfs
-RUN git lfs install --system
+# Create desktop shortcuts
+RUN mkdir -p /home/kasm-user/Desktop && \
+    echo '[Desktop Entry]\n\
+Version=1.0\n\
+Type=Application\n\
+Name=Moltbot Terminal\n\
+Comment=AI Assistant\n\
+Exec=xfce4-terminal -e "bash -l"\n\
+Icon=utilities-terminal\n\
+Terminal=false\n\
+Categories=Development;' > /home/kasm-user/Desktop/moltbot.desktop && \
+    chmod +x /home/kasm-user/Desktop/moltbot.desktop && \
+    chown 1000:1000 /home/kasm-user/Desktop/moltbot.desktop
 
-# Copy startup script
-COPY docker/startup.sh /usr/local/bin/startup.sh
-RUN chmod +x /usr/local/bin/startup.sh
-
-# Set environment
-USER root
-ENV SHELL=/bin/bash
-ENV HOME=/home/node
-ENV DISPLAY=:1
-ENV VNC_RESOLUTION=1920x1080
-ENV VNC_COL_DEPTH=24
-
-# Increase Node.js memory limit
-ENV NODE_OPTIONS="--max-old-space-size=3072"
-
-# Browser configuration for moltbot
-ENV CHROME_BIN=/usr/bin/chromium
-ENV CHROMIUM_PATH=/usr/bin/chromium
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-
-# Disable Chromium sandbox (required for Docker)
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
+# Copy startup script for moltbot auto-config
+COPY docker/startup-moltbot.sh /dockerstartup/startup-moltbot.sh
+RUN chmod +x /dockerstartup/startup-moltbot.sh
 
 # Environment variables (set at runtime by Ordo.sh)
 ENV USER_WALLET=""
@@ -323,8 +264,12 @@ ENV GIT_AUTHOR_EMAIL=""
 ENV GIT_COMMITTER_NAME=""
 ENV GIT_COMMITTER_EMAIL=""
 
-# VNC password (can be overridden at runtime, must be 6+ characters for KasmVNC)
-ENV VNC_PASSWORD="ordodesktop"
+# Browser configuration for moltbot
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMIUM_PATH=/usr/bin/chromium
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
 
 # Expose ports:
 #   6901 = KasmVNC web interface (GUI desktop)
@@ -332,5 +277,5 @@ ENV VNC_PASSWORD="ordodesktop"
 #   18789 = moltbot gateway
 EXPOSE 6901 7681 18789
 
-# Start with auto-config script
-CMD ["/usr/local/bin/startup.sh"]
+# Use KasmWeb's default entrypoint
+# The desktop will start automatically via KasmWeb's startup

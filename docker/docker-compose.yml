@@ -31,7 +31,7 @@ services:
 
     environment:
       # VNC Settings
-      - VNC_PASSWORD=${VNC_PASSWORD:-ordo}
+      - VNC_PASSWORD=${VNC_PASSWORD:-ordodesktop}
       - VNC_RESOLUTION=${VNC_RESOLUTION:-1920x1080}
       - VNC_COL_DEPTH=${VNC_COL_DEPTH:-24}
 
@@ -71,14 +71,14 @@ services:
 
     volumes:
       # Persistent storage
-      - ordo-workspace:/home/node/ordo
-      - ordo-config:/home/node/.moltbot
-      - ordo-ssh:/home/node/.ssh
-      - ordo-desktop:/home/node/Desktop
+      - ordo-workspace:/home/kasm-user/ordo
+      - ordo-config:/home/kasm-user/.moltbot
+      - ordo-ssh:/home/kasm-user/.ssh
+      - ordo-desktop:/home/kasm-user/Desktop
 
       # Optional: Mount local directories
-      # - ./workspace:/home/node/workspace
-      # - ~/.ssh:/home/node/.ssh:ro
+      # - ./workspace:/home/kasm-user/workspace
+      # - ~/.ssh:/home/kasm-user/.ssh:ro
 
     # Required for browser to work properly
     shm_size: '2gb'

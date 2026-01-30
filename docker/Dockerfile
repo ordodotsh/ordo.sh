@@ -109,13 +109,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
 # ============================================================================
-# UV (Modern Python package manager - replaces pip, faster than pip)
-# ============================================================================
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    mv /root/.local/bin/uv /usr/local/bin/ && \
-    mv /root/.local/bin/uvx /usr/local/bin/ 2>/dev/null || true
-
-# ============================================================================
 # GITHUB CLI
 # ============================================================================
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
@@ -182,9 +175,14 @@ RUN npm install -g \
     undici@latest
 
 # ============================================================================
-# PYTHON AI TOOLS (using uv for speed)
+# UV (Modern Python package manager - 10-100x faster than pip)
 # ============================================================================
-RUN uv pip install --system \
+RUN curl -LsSf https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /usr/local/bin --strip-components=1
+
+# ============================================================================
+# PYTHON AI TOOLS
+# ============================================================================
+RUN uv pip install --system --no-cache \
     aider-chat \
     open-interpreter \
     browser-use \

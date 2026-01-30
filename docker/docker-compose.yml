@@ -1,0 +1,114 @@
+# Ordo.sh - AI Desktop in the Cloud
+# Docker Compose configuration for running Ordo locally or on a VPS
+#
+# Quick start:
+#   1. Copy .env.example to .env and fill in your API keys
+#   2. Run: docker compose up -d
+#   3. Open http://localhost:6901 for desktop GUI
+#
+# Ports:
+#   6901  - Desktop GUI (KasmVNC web interface)
+#   7681  - Web Terminal (ttyd)
+#   18789 - Moltbot Gateway API
+
+version: '3.8'
+
+services:
+  ordo:
+    image: ghcr.io/ordodotsh/ordo-bot:latest
+    # Or build locally:
+    # build:
+    #   context: ..
+    #   dockerfile: docker/Dockerfile
+    container_name: ordo
+    hostname: ordo
+    restart: unless-stopped
+
+    ports:
+      - "6901:6901"   # Desktop GUI (KasmVNC)
+      - "7681:7681"   # Web Terminal (ttyd)
+      - "18789:18789" # Moltbot Gateway
+
+    environment:
+      # VNC Settings
+      - VNC_PASSWORD=${VNC_PASSWORD:-ordo}
+      - VNC_RESOLUTION=${VNC_RESOLUTION:-1920x1080}
+      - VNC_COL_DEPTH=${VNC_COL_DEPTH:-24}
+
+      # Auto-configure moltbot
+      - ORDO_AUTO_CONFIG=${ORDO_AUTO_CONFIG:-true}
+
+      # AI Provider Keys
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+
+      # Messaging Channels
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN:-}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID:-}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH:-}
+      - DISCORD_TOKEN=${DISCORD_TOKEN:-}
+      - SLACK_TOKEN=${SLACK_TOKEN:-}
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN:-}
+
+      # Platform Tokens
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - VERCEL_TOKEN=${VERCEL_TOKEN:-}
+      - NETLIFY_AUTH_TOKEN=${NETLIFY_AUTH_TOKEN:-}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - RAILWAY_TOKEN=${RAILWAY_TOKEN:-}
+      - FIREBASE_TOKEN=${FIREBASE_TOKEN:-}
+
+      # Web Search
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+
+      # Git Config
+      - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME:-}
+      - GIT_AUTHOR_EMAIL=${GIT_AUTHOR_EMAIL:-}
+      - GIT_COMMITTER_NAME=${GIT_COMMITTER_NAME:-}
+      - GIT_COMMITTER_EMAIL=${GIT_COMMITTER_EMAIL:-}
+
+    volumes:
+      # Persistent storage
+      - ordo-workspace:/home/node/ordo
+      - ordo-config:/home/node/.moltbot
+      - ordo-ssh:/home/node/.ssh
+      - ordo-desktop:/home/node/Desktop
+
+      # Optional: Mount local directories
+      # - ./workspace:/home/node/workspace
+      # - ~/.ssh:/home/node/.ssh:ro
+
+    # Required for browser to work properly
+    shm_size: '2gb'
+
+    # Required for Chromium sandbox
+    security_opt:
+      - seccomp:unconfined
+
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6901"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  ordo-workspace:
+    name: ordo-workspace
+  ordo-config:
+    name: ordo-config
+  ordo-ssh:
+    name: ordo-ssh
+  ordo-desktop:
+    name: ordo-desktop

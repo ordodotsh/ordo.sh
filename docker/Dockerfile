@@ -1,15 +1,22 @@
-# Ordo.sh - Cloud Moltbot Environment
+# Ordo.sh - Cloud Moltbot Environment with Full Desktop GUI
 # Moltbot (formerly Clawdbot) - https://clawd.bot / https://docs.clawd.bot
 # Container: ghcr.io/ordodotsh/ordo-bot
-FROM node:22-alpine
+#
+# Features:
+#   - Full XFCE4 desktop environment
+#   - KasmVNC for browser-based remote desktop (port 6901)
+#   - Web terminal via ttyd (port 7681)
+#   - All development tools and CLIs
+#
+FROM node:22-bookworm
 
 WORKDIR /home/node
 
-# Enable community repository for desktop packages (must match Alpine version in node:22-alpine)
-RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/repositories
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies including desktop environment
-RUN apk add --no-cache \
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     # Core tools
     git \
     git-lfs \
@@ -18,104 +25,137 @@ RUN apk add --no-cache \
     bash \
     bash-completion \
     jq \
-    yq \
     openssh-client \
-    openssh-keygen \
-    su-exec \
     sudo \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    software-properties-common \
+    apt-transport-https \
+    locales \
     # Terminal multiplexer & tools
     tmux \
     screen \
     less \
-    # Web terminal
-    ttyd \
-    # Browser automation
+    # Desktop environment (XFCE4 - lightweight but full-featured)
+    xfce4 \
+    xfce4-terminal \
+    xfce4-goodies \
+    dbus-x11 \
+    x11-xserver-utils \
+    x11-utils \
+    xdg-utils \
+    # Fonts for GUI
+    fonts-dejavu \
+    fonts-liberation \
+    fonts-noto \
+    fonts-noto-color-emoji \
+    fontconfig \
+    # Browser
     chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    font-noto \
-    font-noto-emoji \
+    chromium-sandbox \
     # Media processing
     ffmpeg \
     imagemagick \
-    # Audio tools (for voice features)
+    # Audio tools
     sox \
+    libsox-fmt-all \
     opus-tools \
-    # Virtual display for headless browser
+    pulseaudio \
+    # Virtual display
     xvfb \
-    dbus \
     # Python
     python3 \
-    py3-pip \
-    py3-numpy \
-    py3-requests \
-    py3-yaml \
-    py3-beautifulsoup4 \
+    python3-pip \
+    python3-venv \
+    python3-numpy \
+    python3-requests \
+    python3-yaml \
+    python3-bs4 \
     # Text editors
     vim \
     nano \
+    # GUI text editor
+    mousepad \
+    # File manager
+    thunar \
     # Development tools
-    make \
+    build-essential \
     g++ \
     gcc \
-    libc-dev \
-    linux-headers \
+    make \
     # File utilities
     zip \
     unzip \
     tar \
     gzip \
     bzip2 \
-    xz \
-    p7zip \
+    xz-utils \
+    p7zip-full \
     rsync \
     # Process management
     htop \
     procps \
     # Network tools
-    bind-tools \
+    dnsutils \
     netcat-openbsd \
     socat \
     openssl \
-    # Network diagnostics
     mtr \
     traceroute \
     whois \
-    # GitHub CLI for repo management
-    github-cli \
+    iputils-ping \
+    net-tools \
+    # GitHub CLI
+    gh \
     # Database clients
-    sqlite \
+    sqlite3 \
     postgresql-client \
-    redis \
+    redis-tools \
     mariadb-client \
     # Additional dev tools
     ripgrep \
-    fd \
+    fd-find \
     tree \
     fzf \
     bat \
-    # Security & encryption
-    gnupg \
     # Timezone data
     tzdata \
     # Cron for scheduled tasks
-    dcron \
-    # AWS CLI
-    aws-cli
+    cron \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install yq (not in Debian repos by default)
+RUN wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && \
+    chmod +x /usr/local/bin/yq
+
+# Install ttyd (web terminal)
+RUN wget -qO /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64 && \
+    chmod +x /usr/local/bin/ttyd
+
+# Install KasmVNC (browser-based remote desktop)
+RUN KASM_VERSION="1.3.2" && \
+    wget -qO /tmp/kasmvnc.deb "https://github.com/kasmtech/KasmVNC/releases/download/v${KASM_VERSION}/kasmvncserver_bookworm_${KASM_VERSION}_amd64.deb" && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends /tmp/kasmvnc.deb && \
+    rm -f /tmp/kasmvnc.deb && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install AWS CLI v2
+RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" && \
+    unzip -q /tmp/awscliv2.zip -d /tmp && \
+    /tmp/aws/install && \
+    rm -rf /tmp/aws /tmp/awscliv2.zip
 
 # Install npm packages (pnpm recommended by moltbot docs)
-# Includes CLIs for autonomous deployment and project management
-RUN npm install -g pnpm clawdbot@latest playwright \
+RUN npm install -g pnpm moltbot@latest playwright \
     vercel \
     netlify-cli \
     wrangler \
     firebase-tools \
     @railway/cli \
     undici \
-    clawdhub \
+    molthub \
     # TypeScript support
     typescript \
     ts-node \
@@ -153,14 +193,34 @@ RUN pip3 install --break-system-packages \
     rich \
     tqdm
 
-# Use the existing 'node' user (UID 1000) from the base image
-# Create workspace directories
-RUN mkdir -p /home/node/workspace /home/node/.ssh /home/node/.config /home/node/.clawdbot /home/node/ordo && \
+# Set up locale
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+
+# Create workspace directories for node user
+RUN mkdir -p /home/node/workspace /home/node/.ssh /home/node/.config /home/node/.moltbot /home/node/ordo /home/node/Desktop && \
     chown -R node:node /home/node
 
-# Allow node user to use sudo without password (for installing packages at runtime)
+# Allow node user to use sudo without password
 RUN echo "node ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/node && \
     chmod 0440 /etc/sudoers.d/node
+
+# Configure KasmVNC for node user
+RUN mkdir -p /home/node/.vnc && \
+    echo "node:ordo" | chpasswd && \
+    chown -R node:node /home/node/.vnc
+
+# Create KasmVNC config
+RUN mkdir -p /home/node/.vnc && \
+    echo 'desktop-environment=startxfce4' > /home/node/.vnc/kasmvnc.yaml && \
+    echo 'network:' >> /home/node/.vnc/kasmvnc.yaml && \
+    echo '  protocol: http' >> /home/node/.vnc/kasmvnc.yaml && \
+    echo '  websocket_port: 6901' >> /home/node/.vnc/kasmvnc.yaml && \
+    echo '  ssl:' >> /home/node/.vnc/kasmvnc.yaml && \
+    echo '    require_ssl: false' >> /home/node/.vnc/kasmvnc.yaml && \
+    chown -R node:node /home/node/.vnc
 
 # Configure bash with useful defaults
 RUN echo '\n\
@@ -172,10 +232,11 @@ alias l="ls -CF"\n\
 alias ..="cd .."\n\
 alias ...="cd ../.."\n\
 alias grep="grep --color=auto"\n\
-alias cat="bat --paging=never 2>/dev/null || cat"\n\
+alias cat="batcat --paging=never 2>/dev/null || cat"\n\
+alias fd="fdfind"\n\
 alias df="df -h"\n\
 alias du="du -h"\n\
-alias free="free -h 2>/dev/null || true"\n\
+alias free="free -h"\n\
 # Git shortcuts\n\
 alias gs="git status"\n\
 alias gd="git diff"\n\
@@ -187,7 +248,7 @@ alias nr="npm run"\n\
 alias pi="pnpm install"\n\
 alias pr="pnpm run"\n\
 # Enable bash completion\n\
-[ -f /etc/bash/bash_completion.sh ] && source /etc/bash/bash_completion.sh\n\
+[ -f /etc/bash_completion ] && source /etc/bash_completion\n\
 ' >> /home/node/.bashrc && chown node:node /home/node/.bashrc
 
 # Initialize git-lfs
@@ -197,21 +258,21 @@ RUN git lfs install --system
 COPY docker/startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 
-# Run as root - startup script will handle permissions and switch to node user
+# Set environment
 USER root
-
-# Set up bash as default shell
 ENV SHELL=/bin/bash
 ENV HOME=/home/node
 ENV DISPLAY=:1
+ENV VNC_RESOLUTION=1920x1080
+ENV VNC_COL_DEPTH=24
 
-# Increase Node.js memory limit (should be ~75% of container memory)
+# Increase Node.js memory limit
 ENV NODE_OPTIONS="--max-old-space-size=3072"
 
-# Browser configuration for moltbot (use system Chromium)
-ENV CHROME_BIN=/usr/bin/chromium-browser
-ENV CHROMIUM_PATH=/usr/bin/chromium-browser
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Browser configuration for moltbot
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMIUM_PATH=/usr/bin/chromium
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Disable Chromium sandbox (required for Docker)
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
@@ -236,7 +297,7 @@ ENV EMAIL_IMAP_USER=""
 ENV EMAIL_IMAP_PASS=""
 ENV EMAIL_SMTP_HOST=""
 
-# Platform tokens (bot can create accounts and set these itself via browser)
+# Platform tokens
 ENV GITHUB_TOKEN=""
 ENV VERCEL_TOKEN=""
 ENV NETLIFY_AUTH_TOKEN=""
@@ -244,7 +305,7 @@ ENV CLOUDFLARE_API_TOKEN=""
 ENV RAILWAY_TOKEN=""
 ENV FIREBASE_TOKEN=""
 
-# Web search (recommended by moltbot)
+# Web search
 ENV BRAVE_API_KEY=""
 
 # Additional API keys
@@ -262,15 +323,20 @@ ENV AWS_ACCESS_KEY_ID=""
 ENV AWS_SECRET_ACCESS_KEY=""
 ENV AWS_DEFAULT_REGION=""
 
-# Git config (bot can override these or set up its own identity)
+# Git config
 ENV GIT_AUTHOR_NAME=""
 ENV GIT_AUTHOR_EMAIL=""
 ENV GIT_COMMITTER_NAME=""
 ENV GIT_COMMITTER_EMAIL=""
 
-# Expose ports: 7681 = terminal, 18789 = moltbot gateway
-EXPOSE 7681 18789
+# VNC password (can be overridden at runtime)
+ENV VNC_PASSWORD="ordo"
+
+# Expose ports:
+#   6901 = KasmVNC web interface (GUI desktop)
+#   7681 = ttyd terminal
+#   18789 = moltbot gateway
+EXPOSE 6901 7681 18789
 
 # Start with auto-config script
 CMD ["/usr/local/bin/startup.sh"]
-# Rebuilt 2026-01-29T03:00:00Z

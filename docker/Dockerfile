@@ -134,19 +134,6 @@ RUN npm install -g pnpm moltbot@latest playwright \
     npm-check-updates \
     depcheck
 
-# Install Python packages (bypass PEP 668 externally-managed check)
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN pip3 install --no-cache-dir \
-    telethon \
-    httpx \
-    aiohttp \
-    yt-dlp \
-    openai \
-    anthropic \
-    schedule \
-    rich \
-    tqdm
-
 # Initialize git-lfs
 RUN git lfs install --system
 

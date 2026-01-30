@@ -140,7 +140,7 @@ ufw default allow outgoing
 ufw allow ssh
 ufw allow 6901/tcp comment 'Ordo Desktop GUI'
 ufw allow 7681/tcp comment 'Ordo Web Terminal'
-ufw allow 18789/tcp comment 'Moltbot Gateway'
+ufw allow 18789/tcp comment 'OpenClaw Gateway'
 ufw --force enable
 
 echo -e "${GREEN}Firewall configured${NC}"
@@ -166,10 +166,10 @@ VNC_PASSWORD=${VNC_PASSWORD}
 # Resolution (default 1920x1080)
 VNC_RESOLUTION=1920x1080
 
-# Auto-configure moltbot on startup
+# Auto-configure OpenClaw on startup
 ORDO_AUTO_CONFIG=true
 
-# AI Provider Keys (at least one required for moltbot)
+# AI Provider Keys (at least one required for OpenClaw)
 ANTHROPIC_API_KEY=${ANTHROPIC_KEY}
 OPENAI_API_KEY=
 GEMINI_API_KEY=
@@ -208,14 +208,14 @@ services:
     ports:
       - "6901:6901"   # Desktop GUI (KasmVNC)
       - "7681:7681"   # Web Terminal (ttyd)
-      - "18789:18789" # Moltbot Gateway
+      - "18789:18789" # OpenClaw Gateway
     env_file:
       - .env
     volumes:
       # Persistent storage for your work
-      - ordo-workspace:/home/node/ordo
-      - ordo-config:/home/node/.moltbot
-      - ordo-ssh:/home/node/.ssh
+      - ordo-workspace:/home/kasm-user/ordo
+      - ordo-config:/home/kasm-user/.openclaw
+      - ordo-ssh:/home/kasm-user/.ssh
     shm_size: '2gb'  # Required for browser
     security_opt:
       - seccomp:unconfined  # Required for browser sandbox
@@ -292,7 +292,7 @@ echo "    Then run: docker compose restart"
 echo ""
 if [ -z "$ANTHROPIC_KEY" ]; then
   echo -e "  ${YELLOW}Note:${NC} Add your ANTHROPIC_API_KEY to /opt/ordo/.env"
-  echo "        to enable Moltbot AI features"
+  echo "        to enable OpenClaw AI features"
   echo ""
 fi
 echo -e "${GREEN}Enjoy your AI Desktop in the Cloud!${NC}"

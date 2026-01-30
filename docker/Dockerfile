@@ -214,15 +214,7 @@ RUN mkdir -p /home/node/.vnc && \
     echo "node:ordo" | chpasswd && \
     chown -R node:node /home/node/.vnc
 
-# Create KasmVNC config
-RUN mkdir -p /home/node/.vnc && \
-    echo 'desktop-environment=startxfce4' > /home/node/.vnc/kasmvnc.yaml && \
-    echo 'network:' >> /home/node/.vnc/kasmvnc.yaml && \
-    echo '  protocol: http' >> /home/node/.vnc/kasmvnc.yaml && \
-    echo '  websocket_port: 6901' >> /home/node/.vnc/kasmvnc.yaml && \
-    echo '  ssl:' >> /home/node/.vnc/kasmvnc.yaml && \
-    echo '    require_ssl: false' >> /home/node/.vnc/kasmvnc.yaml && \
-    chown -R node:node /home/node/.vnc
+# KasmVNC config is set via command-line args in startup.sh
 
 # Configure bash with useful defaults
 RUN echo '\n\

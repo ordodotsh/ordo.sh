@@ -964,11 +964,11 @@ export function Dashboard() {
                           <code 
                             style={{ ...styles.commandStepCode, marginTop: 4 }}
                             onClick={() => {
-                              navigator.clipboard.writeText('clawdbot pairing approve telegram ')
-                              toast.success('Copied! Add your code at the end', { description: 'clawdbot pairing approve telegram CODE' })
+                              navigator.clipboard.writeText('moltbot pairing approve telegram ')
+                              toast.success('Copied! Add your code at the end', { description: 'moltbot pairing approve telegram CODE' })
                             }}
                           >
-                            clawdbot pairing approve telegram CODE
+                            moltbot pairing approve telegram CODE
                           </code>
                           <span style={styles.commandStepDesc}>Replace CODE with your 8-character code</span>
                         </div>
@@ -993,7 +993,7 @@ export function Dashboard() {
                     <div style={styles.pairingNote}>
                       <strong>Note:</strong> Pairing codes expire after 1 hour. After approval, you won't need to pair again.
                       <br />
-                      <a href="https://docs.clawd.bot/start/pairing" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                      <a href="https://docs.moltbot.ai/start/pairing" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
                         Read full pairing docs →
                       </a>
                     </div>
@@ -1020,15 +1020,15 @@ export function Dashboard() {
                     {/* Docs link */}
                     <div style={styles.docsLink}>
                       <span style={styles.docsLinkText}>Need help?</span>
-                      <a href="https://docs.clawd.bot/faq" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                      <a href="https://docs.moltbot.ai/faq" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
                         FAQ
                       </a>
                       <span style={styles.docsLinkDivider}>•</span>
-                      <a href="https://docs.clawd.bot/troubleshooting" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                      <a href="https://docs.moltbot.ai/troubleshooting" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
                         Troubleshooting
                       </a>
                       <span style={styles.docsLinkDivider}>•</span>
-                      <a href="https://docs.clawd.bot" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
+                      <a href="https://docs.moltbot.ai" target="_blank" rel="noopener noreferrer" style={styles.docsLinkAnchor}>
                         Full Docs
                       </a>
                     </div>
@@ -1045,7 +1045,7 @@ export function Dashboard() {
                             '2. Open Telegram and search for your bot username',
                             '3. Send /start - you\'ll get a pairing code (like ABCD1234)',
                             '4. Press Ctrl+C in terminal to stop the gateway',
-                            '5. Run: clawdbot pairing approve telegram YOUR_CODE',
+                            '5. Run: moltbot pairing approve telegram YOUR_CODE',
                             '6. Run "ordo gateway" again - now you can chat!',
                           ],
                           link: 'https://telegram.org/',
@@ -1235,10 +1235,10 @@ export function Dashboard() {
                       <h4 style={{ ...styles.commandsSectionTitle, marginTop: 16 }}>Pairing Commands</h4>
                       <div style={styles.commandsGrid}>
                         {[
-                          { cmd: 'clawdbot pairing list telegram', label: 'clawdbot pairing list telegram', desc: 'See pending Telegram requests' },
-                          { cmd: 'clawdbot pairing approve telegram ', label: 'clawdbot pairing approve telegram CODE', desc: 'Approve a Telegram user' },
-                          { cmd: 'clawdbot pairing list discord', label: 'clawdbot pairing list discord', desc: 'See pending Discord requests' },
-                          { cmd: 'clawdbot pairing approve discord ', label: 'clawdbot pairing approve discord CODE', desc: 'Approve a Discord user' },
+                          { cmd: 'moltbot pairing list telegram', label: 'moltbot pairing list telegram', desc: 'See pending Telegram requests' },
+                          { cmd: 'moltbot pairing approve telegram ', label: 'moltbot pairing approve telegram CODE', desc: 'Approve a Telegram user' },
+                          { cmd: 'moltbot pairing list discord', label: 'moltbot pairing list discord', desc: 'See pending Discord requests' },
+                          { cmd: 'moltbot pairing approve discord ', label: 'moltbot pairing approve discord CODE', desc: 'Approve a Discord user' },
                         ].map((item) => (
                           <button
                             key={item.cmd}
@@ -1260,7 +1260,7 @@ export function Dashboard() {
                         {[
                           { cmd: 'ordo gateway --verbose', label: 'ordo gateway --verbose', desc: 'Start with detailed logging' },
                           { cmd: 'ordo channels login', label: 'ordo channels login', desc: 'WhatsApp QR code login' },
-                          { cmd: 'tail -f ~/.clawdbot/clawdbot.log', label: 'tail -f logs', desc: 'Watch live bot activity' },
+                          { cmd: 'tail -f ~/.moltbot/moltbot.log', label: 'tail -f logs', desc: 'Watch live bot activity' },
                           { cmd: 'ordo --help', label: 'ordo --help', desc: 'See all available commands' },
                         ].map((item) => (
                           <button

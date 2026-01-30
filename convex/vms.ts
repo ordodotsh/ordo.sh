@@ -95,12 +95,12 @@ sleep 5
 docker version
 
 # Create data directories with correct ownership (UID 1000 = dev user in container)
-mkdir -p /opt/ordo/data/.clawdbot
+mkdir -p /opt/ordo/data/.moltbot
 mkdir -p /opt/ordo/data/workspace
 chown -R 1000:1000 /opt/ordo/data
 
 # Pull and run the ordo-bot container
-# The container has Chrome, Xvfb, ttyd, and clawdbot all built-in
+# The container has Chrome, Xvfb, ttyd, and moltbot all built-in
 docker pull ${botImage}
 
 docker run -d \\
@@ -108,7 +108,7 @@ docker run -d \\
     --restart unless-stopped \\
     --network host \\
     ${envFlags} \\
-    -v /opt/ordo/data/.clawdbot:/home/node/.clawdbot \\
+    -v /opt/ordo/data/.moltbot:/home/node/.moltbot \\
     -v /opt/ordo/data/workspace:/home/node/ordo \\
     ${botImage}
 

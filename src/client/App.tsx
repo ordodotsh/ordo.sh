@@ -188,10 +188,10 @@ export function App() {
         <section style={styles.section} className="section">
           <div style={styles.poweredBy}>
             <p style={styles.poweredByText}>
-              Powered by <span style={styles.highlight}>Clawdbot</span> — the open-source AI assistant with 30k+ GitHub stars
+              Powered by <span style={styles.highlight}>Moltbot</span> — the open-source AI assistant with 60k+ GitHub stars
             </p>
             <a
-              href="https://github.com/clawdbot/clawdbot"
+              href="https://github.com/moltbot/moltbot"
               target="_blank"
               rel="noopener noreferrer"
               style={styles.githubLink}
@@ -243,7 +243,7 @@ export function App() {
             </a>
             <span style={styles.footerDot}>·</span>
             <a
-              href="https://github.com/clawdbot/clawdbot"
+              href="https://github.com/moltbot/moltbot"
               target="_blank"
               rel="noopener noreferrer"
               style={styles.footerLink}

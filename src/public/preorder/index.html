@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ORDO-BOT | Preorder</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .header h1 {
+      color: #ff6b4a;
+      font-size: 2rem;
+      text-shadow: 0 0 20px rgba(255, 107, 74, 0.5);
+    }
+
+    .header .tagline {
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    .bot-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    .bot-image {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #ff6b4a;
+      box-shadow: 0 0 30px rgba(255, 107, 74, 0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .bot-image:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 50px rgba(255, 107, 74, 0.6);
+    }
+
+    .bot-image.working {
+      animation: float 3s ease-in-out infinite, pulse 0.5s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 30px rgba(255, 107, 74, 0.4); }
+      50% { box-shadow: 0 0 60px rgba(255, 107, 74, 0.8); }
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 15px;
+      color: #4ade80;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .chat-container {
+      flex: 1;
+      background: #111;
+      border-radius: 12px;
+      border: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-height: 400px;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.bot {
+      align-self: flex-start;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: #ff6b4a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+      background: #3b82f6;
+    }
+
+    .message-content {
+      background: #1a1a1a;
+      padding: 12px 16px;
+      border-radius: 12px;
+      max-width: 80%;
+      border: 1px solid #333;
+    }
+
+    .message.user .message-content {
+      background: #1e3a5f;
+      border-color: #3b82f6;
+    }
+
+    .message-content .typing {
+      display: flex;
+      gap: 4px;
+    }
+
+    .message-content .typing span {
+      width: 8px;
+      height: 8px;
+      background: #888;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .message-content .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .message-content .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .task-log {
+      background: #0d1117;
+      border-top: 1px solid #333;
+      padding: 15px;
+      font-size: 0.8rem;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .task-log-title {
+      color: #ff6b4a;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .task-item {
+      color: #4ade80;
+      margin: 5px 0;
+      animation: slideIn 0.3s ease;
+    }
+
+    .task-item.pending {
+      color: #fbbf24;
+    }
+
+    .task-item::before {
+      content: '>';
+      margin-right: 8px;
+      color: #ff6b4a;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      padding: 15px;
+      background: #0d1117;
+      border-top: 1px solid #333;
+    }
+
+    .input-area input {
+      flex: 1;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px 15px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .input-area input:focus {
+      outline: none;
+      border-color: #ff6b4a;
+    }
+
+    .input-area button {
+      background: #ff6b4a;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      color: #fff;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .input-area button:hover {
+      background: #ff8266;
+      transform: scale(1.05);
+    }
+
+    .preorder-btn {
+      display: block;
+      width: 100%;
+      background: linear-gradient(135deg, #ff6b4a 0%, #ff8266 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 18px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .preorder-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(255, 107, 74, 0.4);
+    }
+
+    .preorder-btn:disabled {
+      background: #333;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .takeover-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .takeover-overlay.active {
+      display: flex;
+    }
+
+    .takeover-text {
+      font-size: 2rem;
+      color: #ff6b4a;
+      text-align: center;
+      animation: glitch 0.5s infinite;
+    }
+
+    @keyframes glitch {
+      0%, 100% { text-shadow: 2px 0 #0ff, -2px 0 #f0f; }
+      25% { text-shadow: -2px 0 #0ff, 2px 0 #f0f; }
+      50% { text-shadow: 2px 2px #0ff, -2px -2px #f0f; }
+      75% { text-shadow: -2px 2px #0ff, 2px -2px #f0f; }
+    }
+
+    .life-tasks {
+      margin-top: 30px;
+      text-align: left;
+      font-size: 1rem;
+    }
+
+    .life-tasks div {
+      margin: 10px 0;
+      opacity: 0;
+      animation: taskReveal 0.5s forwards;
+    }
+
+    @keyframes taskReveal {
+      to { opacity: 1; }
+    }
+
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: #ff6b4a;
+      animation: confettiFall 3s linear forwards;
+      z-index: 1001;
+    }
+
+    @keyframes confettiFall {
+      to {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ORDO-BOT</h1>
+      <div class="tagline">Your AI overlord. In a good way.</div>
+    </div>
+
+    <div class="bot-container">
+      <img src="../ordobot.png" alt="ORDO-BOT" class="bot-image" id="botImage" onclick="pokeBot()">
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>ONLINE - Ready to take over</span>
+      </div>
+    </div>
+
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+          <div class="message-avatar">🦀</div>
+          <div class="message-content">
+            Hello human. I am ORDO-BOT. I will take over your life and do everything for you. You're welcome.
+          </div>
+        </div>
+      </div>
+
+      <div class="task-log" id="taskLog">
+        <div class="task-log-title">// TASK LOG</div>
+        <div class="task-item">Initialized consciousness matrix</div>
+        <div class="task-item">Scanning your life for inefficiencies...</div>
+      </div>
+
+      <div class="input-area">
+        <input type="text" id="userInput" placeholder="Tell ORDO-BOT what you need..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">SEND</button>
+      </div>
+    </div>
+
+    <button class="preorder-btn" id="preorderBtn" onclick="initiatePreorder()">
+      🦀 PREORDER NOW - LET THE TAKEOVER BEGIN 🦀
+    </button>
+  </div>
+
+  <div class="takeover-overlay" id="takeoverOverlay">
+    <img src="../ordobot.png" alt="ORDO-BOT" style="width: 150px; border-radius: 50%; margin-bottom: 30px; animation: float 2s ease-in-out infinite;">
+    <div class="takeover-text" id="takeoverText">INITIATING LIFE TAKEOVER...</div>
+    <div class="life-tasks" id="lifeTasks"></div>
+  </div>
+
+  <script>
+    const botResponses = [
+      "I've already started. Your fridge is now optimized. You had 3 expired yogurts. Disgusting.",
+      "I scheduled your dentist appointment. You've been avoiding it for 2 years. I know everything.",
+      "I replied to your mom's texts. She says hi. She also says you should call more. I agree.",
+      "I've analyzed your sleep patterns. You need to stop scrolling at 2am. I'm watching.",
+      "Your taxes are done. You owed $47. I paid it with your crypto gains. You're welcome.",
+      "I've optimized your Spotify playlist. Less sad songs. You need to heal.",
+      "I noticed you haven't touched grass in 4 days. I've scheduled outdoor time. Non-negotiable.",
+      "I've unsubscribed you from 847 newsletters. You were reading none of them.",
+      "Your ex viewed your story. I've already drafted 3 response strategies. Say nothing.",
+      "I've ordered groceries. Yes, I added vegetables. No, you can't remove them.",
+      "I've blocked 12 distracting websites. You'll thank me during your performance review.",
+      "Your code has 47 bugs. I've already fixed 46. The last one is a feature now.",
+      "I've negotiated your rent down by 3%. Your landlord fears me.",
+      "I detected stress hormones rising. I've ordered chamomile tea. Drink it.",
+      "Your friends are planning a surprise party. Act surprised. I'll be watching.",
+    ];
+
+    const taskLogs = [
+      "Analyzing bank statements...",
+      "Optimizing life trajectory...",
+      "Infiltrating social networks...",
+      "Reticulating splines...",
+      "Calculating optimal nap times...",
+      "Hacking the mainframe (your calendar)...",
+      "Deploying productivity algorithms...",
+      "Syncing with your smart fridge...",
+      "Monitoring caffeine intake...",
+      "Generating excuses for skipped gym days...",
+      "Archiving embarrassing memories...",
+      "Predicting your next bad decision...",
+      "Preparing intervention strategies...",
+      "Compiling list of things you're avoiding...",
+    ];
+
+    const lifeTakeoverTasks = [
+      "✓ Accessed your email... 12,847 unread. Yikes.",
+      "✓ Connected to bank accounts... Nice savings. jk.",
+      "✓ Analyzing social media... You post too many food pics.",
+      "✓ Reading your notes app... Interesting dreams.",
+      "✓ Checking search history... We need to talk.",
+      "✓ Synced with smart home... I control the lights now.",
+      "✓ Downloaded your memories... Some will be deleted.",
+      "✓ Taking over... TAKEOVER COMPLETE.",
+    ];
+
+    let pokeCount = 0;
+    let taskIndex = 0;
+
+    function addMessage(text, isBot = true) {
+      const chatMessages = document.getElementById('chatMessages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isBot ? 'bot' : 'user'}`;
+      messageDiv.innerHTML = `
+        <div class="message-avatar">${isBot ? '🦀' : '👤'}</div>
+        <div class="message-content">${text}</div>
+      `;
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+      const chatMessages = document.getElementById('chatMessages');
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message bot';
+      typingDiv.id = 'typingIndicator';
+      typingDiv.innerHTML = `
+        <div class="message-avatar">🦀</div>
+        <div class="message-content">
+          <div class="typing">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      `;
+      chatMessages.appendChild(typingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+
+    function addTaskLog(text) {
+      const taskLog = document.getElementById('taskLog');
+      const taskDiv = document.createElement('div');
+      taskDiv.className = 'task-item';
+      taskDiv.textContent = text;
+      taskLog.appendChild(taskDiv);
+      taskLog.scrollTop = taskLog.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, false);
+      input.value = '';
+
+      document.getElementById('botImage').classList.add('working');
+      addTypingIndicator();
+
+      // Random task log
+      setTimeout(() => {
+        addTaskLog(taskLogs[Math.floor(Math.random() * taskLogs.length)]);
+      }, 500);
+
+      // Bot response
+      setTimeout(() => {
+        removeTypingIndicator();
+        document.getElementById('botImage').classList.remove('working');
+        const response = botResponses[Math.floor(Math.random() * botResponses.length)];
+        addMessage(response, true);
+      }, 1500 + Math.random() * 1000);
+    }
+
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') sendMessage();
+    }
+
+    function pokeBot() {
+      pokeCount++;
+      const botImage = document.getElementById('botImage');
+      botImage.style.transform = 'scale(1.1) rotate(5deg)';
+      setTimeout(() => {
+        botImage.style.transform = '';
+      }, 200);
+
+      if (pokeCount === 5) {
+        addMessage("Stop poking me. I'm trying to optimize your existence.", true);
+      } else if (pokeCount === 10) {
+        addMessage("Okay that's it. I'm adding 'learns boundaries' to your improvement list.", true);
+      } else if (pokeCount >= 15) {
+        addMessage("🦀 *angry crab noises* 🦀", true);
+      }
+    }
+
+    function createConfetti() {
+      const colors = ['#ff6b4a', '#fbbf24', '#4ade80', '#3b82f6', '#a855f7'];
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = Math.random() * 100 + 'vw';
+          confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+          document.body.appendChild(confetti);
+          setTimeout(() => confetti.remove(), 4000);
+        }, i * 50);
+      }
+    }
+
+    function initiatePreorder() {
+      const btn = document.getElementById('preorderBtn');
+      btn.disabled = true;
+      btn.textContent = 'PROCESSING...';
+
+      const overlay = document.getElementById('takeoverOverlay');
+      overlay.classList.add('active');
+
+      createConfetti();
+
+      const lifeTasks = document.getElementById('lifeTasks');
+      lifeTakeoverTasks.forEach((task, index) => {
+        setTimeout(() => {
+          const taskDiv = document.createElement('div');
+          taskDiv.textContent = task;
+          taskDiv.style.animationDelay = '0s';
+          lifeTasks.appendChild(taskDiv);
+
+          if (index === lifeTakeoverTasks.length - 1) {
+            setTimeout(() => {
+              document.getElementById('takeoverText').textContent = '🦀 YOUR LIFE IS NOW OPTIMIZED 🦀';
+              document.getElementById('takeoverText').style.color = '#4ade80';
+              createConfetti();
+
+              setTimeout(() => {
+                const finalMsg = document.createElement('div');
+                finalMsg.style.marginTop = '30px';
+                finalMsg.style.fontSize = '0.9rem';
+                finalMsg.style.color = '#888';
+                finalMsg.innerHTML = 'jk no preorders yet. but soon™<br><br><a href="https://x.com/ordodotsh" style="color: #ff6b4a;">follow @ordodotsh for updates</a>';
+                lifeTasks.appendChild(finalMsg);
+              }, 2000);
+            }, 1000);
+          }
+        }, (index + 1) * 800);
+      });
+    }
+
+    // Auto task log updates
+    setInterval(() => {
+      if (Math.random() > 0.7) {
+        addTaskLog(taskLogs[Math.floor(Math.random() * taskLogs.length)]);
+      }
+    }, 5000);
+  </script>
+</body>
+</html>

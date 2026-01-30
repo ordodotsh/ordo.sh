@@ -133,7 +133,7 @@ RUN npm install -g pnpm moltbot@latest playwright \
     depcheck
 
 # Install Python packages
-RUN pip3 install --break-system-packages \
+RUN pip3 install --no-cache-dir \
     telethon \
     httpx \
     aiohttp \

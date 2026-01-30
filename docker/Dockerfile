@@ -98,6 +98,9 @@ RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/t
     /tmp/aws/install && \
     rm -rf /tmp/aws /tmp/awscliv2.zip
 
+# Skip Playwright browser download (we use system Chromium)
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
 # Install npm packages (pnpm recommended by moltbot docs)
 RUN npm install -g pnpm moltbot@latest playwright \
     vercel \
@@ -106,7 +109,6 @@ RUN npm install -g pnpm moltbot@latest playwright \
     firebase-tools \
     @railway/cli \
     undici \
-    molthub \
     # TypeScript support
     typescript \
     ts-node \
@@ -132,7 +134,8 @@ RUN npm install -g pnpm moltbot@latest playwright \
     npm-check-updates \
     depcheck
 
-# Install Python packages
+# Install Python packages (bypass PEP 668 externally-managed check)
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN pip3 install --no-cache-dir \
     telethon \
     httpx \
@@ -272,7 +275,6 @@ ENV GIT_COMMITTER_EMAIL=""
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMIUM_PATH=/usr/bin/chromium
 ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 ENV CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
 
 # Expose ports:

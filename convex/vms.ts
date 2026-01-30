@@ -94,9 +94,10 @@ systemctl start docker
 sleep 5
 docker version
 
-# Create data directories with correct ownership (UID 1000 = dev user in container)
+# Create data directories with correct ownership (UID 1000 = kasm-user in container)
 mkdir -p /opt/ordo/data/.moltbot
 mkdir -p /opt/ordo/data/workspace
+mkdir -p /opt/ordo/data/.config
 chown -R 1000:1000 /opt/ordo/data
 
 # Pull and run the ordo-bot container
@@ -108,8 +109,9 @@ docker run -d \\
     --restart unless-stopped \\
     --network host \\
     ${envFlags} \\
-    -v /opt/ordo/data/.moltbot:/home/node/.moltbot \\
-    -v /opt/ordo/data/workspace:/home/node/ordo \\
+    -v /opt/ordo/data/.moltbot:/home/kasm-user/.moltbot \\
+    -v /opt/ordo/data/workspace:/home/kasm-user/ordo \\
+    -v /opt/ordo/data/.config:/home/kasm-user/.config \\
     ${botImage}
 
 # Wait for container to start
@@ -282,13 +284,11 @@ export const fetchDropletIp = internalAction({
       return;
     }
 
-    // Terminal URL will be http://IP:7681 (ttyd)
-    const terminalUrl = `http://${publicIp}:7681`;
-
+    // Store raw IP - frontend constructs URLs for port 6901 (desktop) and 7681 (terminal)
     await ctx.runMutation(internal.vms.updateStatus, {
       vmId,
       status: "running",
-      ip: terminalUrl,
+      ip: publicIp,  // Store raw IP, derive URLs in frontend
     });
   },
 });

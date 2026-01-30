@@ -219,6 +219,14 @@ function LoadingSkeleton() {
   )
 }
 
+// Helper to extract raw IP from VM (handles both old format "http://ip:7681" and new format "ip")
+function extractRawIp(vmIp: string | undefined): string | null {
+  if (!vmIp) return null;
+  // Remove protocol and port if present (for backward compat with old VMs)
+  const match = vmIp.match(/(?:https?:\/\/)?([^:\/]+)/);
+  return match ? match[1] : vmIp;
+}
+
 export function Dashboard() {
   const { publicKey, disconnect } = useWallet()
   const navigate = useNavigate()
@@ -421,6 +429,9 @@ export function Dashboard() {
   const hasVm = !!dashboard?.vm
   const vmRunning = dashboard?.vm?.status === 'running'
   const vmFailed = dashboard?.vm?.status === 'failed'
+  
+  // Extract raw IP (handles both old "http://ip:7681" format and new "ip" format)
+  const vmRawIp = extractRawIp(dashboard?.vm?.ip)
 
   // Determine current step
   const currentStep = !hasSubscription ? 1 : !hasApiKey ? 2 : !hasChannels ? 3 : !hasVm ? 4 : 5
@@ -897,7 +908,7 @@ export function Dashboard() {
             </div>
 
             {/* Terminal Section - Full Width Below */}
-            {vmRunning && dashboard?.vm?.ip && (
+            {vmRunning && vmRawIp && (
               <div style={styles.terminalSection}>
                 {/* Bot Status Info */}
                 <div style={styles.botStatusCard}>
@@ -1141,12 +1152,20 @@ export function Dashboard() {
                 {/* Access Buttons */}
                 <div style={styles.accessButtonsRow}>
                   <a
-                    href={dashboard.vm.ip}
+                    href={`http://${vmRawIp}:6901`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={styles.accessBtn}
+                    style={{...styles.accessBtn, background: currentColors.green}}
                   >
-                    <span>🖥️</span> Open Terminal in New Tab
+                    <span>🖥️</span> Open Desktop (GUI)
+                  </a>
+                  <a
+                    href={`http://${vmRawIp}:7681`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{...styles.accessBtn, background: currentColors.accent}}
+                  >
+                    <span>⌨️</span> Open Terminal
                   </a>
                 </div>
 
@@ -1174,31 +1193,51 @@ export function Dashboard() {
                       <div style={{ fontSize: '48px', marginBottom: '16px' }}>🖥️</div>
                       <h3 style={{ color: '#ccc', marginBottom: '8px', fontWeight: 600 }}>Terminal Available</h3>
                       <p style={{ marginBottom: '20px', maxWidth: '400px', lineHeight: 1.5 }}>
-                        Your terminal is running at <code style={{ background: '#333', padding: '2px 6px', borderRadius: '4px' }}>{dashboard?.vm?.ip}</code>
+                        Your desktop is running at <code style={{ background: '#333', padding: '2px 6px', borderRadius: '4px' }}>{vmRawIp}</code>
                       </p>
                       <p style={{ fontSize: '13px', marginBottom: '20px', opacity: 0.7 }}>
-                        Due to browser security (HTTPS), the terminal opens in a new tab.
+                        Click below to access your full GUI desktop - browse the web, use apps, and more!
                       </p>
-                      <button
-                        onClick={() => window.open(dashboard?.vm?.ip || '', '_blank')}
-                        style={{
-                          background: currentColors.accent,
-                          color: '#fff',
-                          border: 'none',
-                          padding: '14px 28px',
-                          borderRadius: '8px',
-                          fontSize: '16px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        🖥️ Open Terminal
-                      </button>
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => window.open(`http://${vmRawIp}:6901`, '_blank')}
+                          style={{
+                            background: currentColors.green,
+                            color: '#fff',
+                            border: 'none',
+                            padding: '14px 28px',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          🖥️ Open Desktop
+                        </button>
+                        <button
+                          onClick={() => window.open(`http://${vmRawIp}:7681`, '_blank')}
+                          style={{
+                            background: currentColors.accent,
+                            color: '#fff',
+                            border: 'none',
+                            padding: '14px 28px',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          ⌨️ Terminal
+                        </button>
+                      </div>
                       <p style={{ fontSize: '12px', marginTop: '16px', opacity: 0.5 }}>
-                        Tip: Bookmark the terminal URL for quick access
+                        Tip: The Desktop gives you a full Linux GUI with browser, file manager, and more
                       </p>
                     </div>
                   </div>

@@ -26,8 +26,8 @@ RUN apt-get update && apt-get install -y \
     tigervnc-common \
     novnc \
     websockify \
-    # Browser
-    chromium-browser \
+    # Browser deps (Firefox installed separately to avoid snap)
+    libdbus-glib-1-2 \
     # Core tools
     sudo \
     git \
@@ -77,6 +77,19 @@ RUN apt-get update && apt-get install -y \
 # LOCALE SETUP
 # ============================================================================
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+
+# ============================================================================
+# EMOJI FONT FIX
+# ============================================================================
+RUN rm -f /etc/fonts/conf.d/70-no-bitmaps.conf && fc-cache -fv
+
+# ============================================================================
+# FIREFOX ESR (avoid snap)
+# ============================================================================
+RUN wget -qO- https://packages.mozilla.org/apt/repo-signing-key.gpg | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null && \
+    echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | tee /etc/apt/sources.list.d/mozilla.list > /dev/null && \
+    apt-get update && apt-get install -y firefox-esr && \
+    rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
 # NODE.JS 22

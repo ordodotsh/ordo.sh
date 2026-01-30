@@ -94,4 +94,5 @@ echo "  VNC Password: ${VNC_PASSWORD:-ordo}"
 echo ""
 
 # Start ttyd (this keeps the container running)
-exec ttyd -W -p 7681 bash -l
+# -l flag makes bash source .bashrc
+exec ttyd -W -p 7681 bash --login -i

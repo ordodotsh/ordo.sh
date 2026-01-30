@@ -30,8 +30,6 @@ alias ni="npm install"
 alias nr="npm run"
 alias pi="pnpm install"
 alias pr="pnpm run"
-alias bi="bun install"
-alias br="bun run"
 
 # Python shortcuts
 alias py="python3"
@@ -69,9 +67,8 @@ if [ -z "$ORDO_WELCOMED" ]; then
   # Show runtime versions
   NODE_V=$(node -v 2>/dev/null || echo "n/a")
   PY_V=$(python3 --version 2>/dev/null | cut -d' ' -f2 || echo "n/a")
-  BUN_V=$(bun -v 2>/dev/null || echo "n/a")
   GO_V=$(go version 2>/dev/null | cut -d' ' -f3 || echo "n/a")
-  echo "  Runtimes: Node $NODE_V | Python $PY_V | Bun $BUN_V | Go $GO_V"
+  echo "  Runtimes: Node $NODE_V | Python $PY_V | Go $GO_V"
   echo ""
   echo "  AI Tools:"
   echo "    ordo       - AI assistant gateway (openclaw)"

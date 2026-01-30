@@ -93,13 +93,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
-# BUN (Fast JavaScript runtime & package manager)
-# ============================================================================
-RUN curl -fsSL https://bun.sh/install | bash && \
-    mv /root/.bun/bin/bun /usr/local/bin/ && \
-    ln -sf /usr/local/bin/bun /usr/local/bin/bunx
-
-# ============================================================================
 # GO (Latest stable)
 # ============================================================================
 RUN curl -fsSL https://go.dev/dl/go1.23.5.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \

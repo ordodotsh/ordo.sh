@@ -160,7 +160,8 @@ RUN mkdir -p $HOME/.vnc $HOME/.openclaw $HOME/ordo $HOME/Desktop $HOME/.local/sh
 # ============================================================================
 COPY docker/bashrc-ordo.sh /tmp/bashrc-ordo.sh
 RUN cat /tmp/bashrc-ordo.sh >> $HOME/.bashrc && \
-    chown $USER:$USER $HOME/.bashrc && \
+    echo 'source ~/.bashrc' > $HOME/.bash_profile && \
+    chown $USER:$USER $HOME/.bashrc $HOME/.bash_profile && \
     rm /tmp/bashrc-ordo.sh
 
 # ============================================================================

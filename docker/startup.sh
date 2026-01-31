@@ -104,5 +104,5 @@ echo "  VNC Password: ${VNC_PASSWORD:-ordo}"
 echo ""
 
 # Start ttyd (this keeps the container running)
-# -l flag makes bash source .bashrc
-exec ttyd -W -p 7681 bash --login -i
+# Use bash with profile to ensure bashrc is loaded
+exec ttyd -W -p 7681 /bin/bash -c "source ~/.bashrc && exec bash"

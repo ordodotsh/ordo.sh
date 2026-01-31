@@ -234,6 +234,13 @@ export function App() {
           </a>
           <div style={styles.footerLinks}>
             <a
+              href="/docs"
+              style={styles.footerLink}
+            >
+              Docs
+            </a>
+            <span style={styles.footerDot}>·</span>
+            <a
               href="https://x.com/ordodotsh"
               target="_blank"
               rel="noopener noreferrer"

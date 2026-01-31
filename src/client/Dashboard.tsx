@@ -1249,6 +1249,7 @@ export function Dashboard() {
                           { cmd: 'ordo status', label: 'ordo status', desc: '📊 Check bot & channel status', category: 'essential' },
                           { cmd: 'ordo doctor --fix', label: 'ordo doctor --fix', desc: '🔧 Fix issues automatically', category: 'essential' },
                           { cmd: 'ordo gateway', label: 'ordo gateway', desc: '🚀 START THE BOT (run this!)', category: 'essential', highlight: true },
+                          { cmd: 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"', label: 'Install Homebrew', desc: '🍺 Optional - for extra skills', category: 'optional' },
                         ].map((item) => (
                           <button
                             key={item.cmd}

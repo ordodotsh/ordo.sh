@@ -35,6 +35,9 @@ services:
       - VNC_RESOLUTION=${VNC_RESOLUTION:-1920x1080}
       - VNC_COL_DEPTH=${VNC_COL_DEPTH:-24}
 
+      # Web Terminal Password
+      - TTYD_PASSWORD=${TTYD_PASSWORD:-ordoterminal}
+
       # Auto-configure OpenClaw
       - ORDO_AUTO_CONFIG=${ORDO_AUTO_CONFIG:-true}
 

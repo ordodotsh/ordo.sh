@@ -97,12 +97,14 @@ echo "========================================"
 echo "  Ordo Desktop Ready!"
 echo "========================================"
 echo ""
-echo "  Desktop: http://localhost:6080/vnc.html"
+echo "  Desktop:  http://localhost:6080/vnc.html"
 echo "  Terminal: http://localhost:7681"
 echo ""
 echo "  VNC Password: ${VNC_PASSWORD:-ordo}"
+echo "  Terminal Login: ordo / ${TTYD_PASSWORD:-ordo}"
 echo ""
 
 # Start ttyd (this keeps the container running)
 # Use bash with profile to ensure bashrc is loaded
-exec ttyd -W -p 7681 /bin/bash -c "source ~/.bashrc && exec bash"
+# -c enables basic auth (user:password)
+exec ttyd -W -p 7681 -c "ordo:${TTYD_PASSWORD:-ordo}" /bin/bash -c "source ~/.bashrc && exec bash"

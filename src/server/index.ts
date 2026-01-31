@@ -119,6 +119,61 @@ new Elysia()
     count: waitlist.length
   }))
 
+  // X OAuth callback
+  .get('/auth/callback', async ({ query, set }) => {
+    const { code, state } = query
+
+    if (!code) {
+      set.status = 400
+      return { error: 'No authorization code provided' }
+    }
+
+    const clientId = process.env.X_CLIENT_ID
+    const clientSecret = process.env.X_CLIENT_SECRET
+    const redirectUri = 'https://ordo.sh/auth/callback'
+
+    if (!clientId || !clientSecret) {
+      set.status = 500
+      return { error: 'X API credentials not configured' }
+    }
+
+    try {
+      // Exchange code for tokens
+      const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: redirectUri,
+          code_verifier: 'challenge', // You'll need to store/retrieve this from the auth initiation
+        }),
+      })
+
+      const tokens = await tokenResponse.json()
+
+      if (!tokenResponse.ok) {
+        console.error('[X OAuth] Token exchange failed:', tokens)
+        set.status = 400
+        return { error: 'Token exchange failed', details: tokens }
+      }
+
+      console.log('[X OAuth] Successfully authenticated:', tokens)
+
+      // TODO: Store tokens securely (database, encrypted file, etc.)
+      // For now, redirect to dashboard with success
+      set.redirect = '/dashboard?auth=success'
+      return
+    } catch (error) {
+      console.error('[X OAuth] Error:', error)
+      set.status = 500
+      return { error: 'Authentication failed' }
+    }
+  })
+
   .listen(3000)
 
 console.log(`

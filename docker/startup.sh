@@ -79,6 +79,16 @@ if [ "$ORDO_AUTO_CONFIG" = "true" ]; then
 fi
 
 # ============================================================================
+# AUTO-START GATEWAY (if already configured)
+# ============================================================================
+if [ -f "$HOME/.openclaw/openclaw.json" ]; then
+    echo "[ordo] Found OpenClaw config, starting gateway..."
+    nohup openclaw gateway --port 18789 > ~/.openclaw/openclaw.log 2>&1 &
+    sleep 2
+    echo "[ordo] Gateway started (check ~/.openclaw/openclaw.log for logs)"
+fi
+
+# ============================================================================
 # WEB TERMINAL
 # ============================================================================
 echo "[ordo] Starting web terminal on port 7681..."

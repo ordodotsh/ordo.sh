@@ -144,10 +144,12 @@ RUN useradd -m -s /bin/bash -G sudo $USER && \
     echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================================================
-# HOMEBREW (Linuxbrew)
+# HOMEBREW (Linuxbrew) - must run as non-root user
 # ============================================================================
-RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && \
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /etc/profile.d/homebrew.sh
+USER $USER
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+USER root
+RUN echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /etc/profile.d/homebrew.sh
 
 # ============================================================================
 # SETUP DIRECTORIES

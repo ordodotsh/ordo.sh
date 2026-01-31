@@ -132,6 +132,11 @@ RUN npm install -g \
     pm2@latest \
     serve@latest
 
+# Setup pnpm global bin directory
+ENV PNPM_HOME="/home/ordo/.local/share/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN mkdir -p $PNPM_HOME
+
 # ============================================================================
 # CREATE USER
 # ============================================================================
@@ -139,9 +144,15 @@ RUN useradd -m -s /bin/bash -G sudo $USER && \
     echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================================================
+# HOMEBREW (Linuxbrew)
+# ============================================================================
+RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && \
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /etc/profile.d/homebrew.sh
+
+# ============================================================================
 # SETUP DIRECTORIES
 # ============================================================================
-RUN mkdir -p $HOME/.vnc $HOME/.openclaw $HOME/ordo $HOME/Desktop && \
+RUN mkdir -p $HOME/.vnc $HOME/.openclaw $HOME/ordo $HOME/Desktop $HOME/.local/share/pnpm && \
     chown -R $USER:$USER $HOME
 
 # ============================================================================
@@ -162,6 +173,7 @@ RUN chmod +x /startup.sh
 # ENVIRONMENT VARIABLES
 # ============================================================================
 ENV DISPLAY=:1 \
+    SHELL=/bin/bash \
     LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
     VNC_PASSWORD=ordo \

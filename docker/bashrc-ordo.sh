@@ -7,9 +7,6 @@ export SHELL=/bin/bash
 export PNPM_HOME="/home/ordo/.local/share/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
-# Homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" 2>/dev/null
-
 # Prompt
 export PS1="\[\033[1;32m\]ordo\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ "
 

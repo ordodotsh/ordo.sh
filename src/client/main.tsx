@@ -9,6 +9,8 @@ import { Toaster } from 'sonner'
 import { Analytics } from '@vercel/analytics/react'
 import { App } from './App'
 import { Dashboard } from './Dashboard'
+import { Docs } from './Docs'
+import { Hackathon } from './Hackathon'
 import { NotFound } from './NotFound'
 import './mobile.css'
 import '@solana/wallet-adapter-react-ui/styles.css'
@@ -44,6 +46,8 @@ createRoot(document.getElementById('root')!).render(
             />
             <Routes>
               <Route path="/" element={<App />} />
+              <Route path="/docs" element={<Docs />} />
+              <Route path="/hackathon" element={<Hackathon />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
